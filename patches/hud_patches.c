@@ -861,11 +861,9 @@ extern Gfx D_1024990[];
 RECOMP_PATCH void func_hud_8008C6F4(s32 idx, s32 arg1) {
     static const f32 D_800D1EF8[] = { 0.0f, 0.0f, -9.0f, 9.0f, 10.0f, 10.0f, 10.0f, 10.0f, 0.0f, 0.0f, -8.0f, 8.0f };
     static const f32 D_800D1F28[] = { -7.0f, 7.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 8.0f, -8.0f, 0.0f, 0.0f };
-    static const f32 D_800D1F58[] = { -22.0f, -22.0f, -22.0f, -22.0f, -28.0f, -28.0f,
-                                      -28.0f, -28.0f, -28.0f, -28.0f, -28.0f, -28.0f };
+    static const f32 D_800D1F58[] = { -22.0f, -22.0f, -22.0f, -22.0f, -28.0f, -28.0f, -28.0f, -28.0f, -28.0f, -28.0f, -28.0f, -28.0f };
     static const f32 D_800D1F88[] = { 0.0f, 0.0f, 0.0f, 0.0f, 495.0f, 405.0f, 585.0f, 675.0f, 0.0f, 0.0f, 0.0f, 0.0f };
-    static const f32 D_800D1FB8[] = { 180.0f, 0.0f,   270.0f, 90.0f,  270.0f, 270.0f,
-                                      270.0f, 270.0f, 0.0f,   180.0f, 90.0f,  270.0f };
+    static const f32 D_800D1FB8[] = { 180.0f, 0.0f, 270.0f, 90.0f, 270.0f, 270.0f, 270.0f, 270.0f, 0.0f, 180.0f, 90.0f, 270.0f };
     static const f32 D_800D1FE8[] = { 0.0f, 0.0f, 2.0f, -2.0f, -2.0f, -2.0f, -2.0f, -2.0f, 0.0f, 0.0f, 2.0f, -2.0f };
     static const f32 D_800D2018[] = { 2.0f, -2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, -2.0f, 2.0f, 0.0f, 0.0f };
 
@@ -886,15 +884,29 @@ RECOMP_PATCH void func_hud_8008C6F4(s32 idx, s32 arg1) {
         Matrix_Translate(gGfxMatrix, D_800D1EF8[idx], D_800D1F28[idx], D_800D1F58[idx], MTXF_APPLY);
     }
 
-    // Apply direction-specific viewport alignments here
-    if (D_800D1FB8[idx] == 270.0f) { // Right
-        gEXSetViewportAlign(gMasterDisp++, G_EX_ORIGIN_LEFT, 0, 0);
-        gSPViewport(gMasterDisp++, gViewport);
-    } else if (D_800D1FB8[idx] == 90.0f) { // Left
-        gEXSetViewportAlign(gMasterDisp++, G_EX_ORIGIN_RIGHT, -SCREEN_WIDTH * 4, 0);
-        gSPViewport(gMasterDisp++, gViewport);
-    } else if (D_800D1FB8[idx] == 0.0f || D_800D1FB8[idx] == 180.0f) { // Up or Down
-        gSPViewport(gMasterDisp++, gViewport);
+    // Check whether we're on rails or in free-move mode
+    if (gLevelMode == LEVELMODE_ON_RAILS) {
+        // Handle on-rails specific viewport alignments
+        if (D_800D1FB8[idx] == 270.0f) { // Right
+            gEXSetViewportAlign(gMasterDisp++, G_EX_ORIGIN_RIGHT, -SCREEN_WIDTH * 4, 0);
+            gSPViewport(gMasterDisp++, gViewport);
+        } else if (D_800D1FB8[idx] == 90.0f) { // Left
+            gEXSetViewportAlign(gMasterDisp++, G_EX_ORIGIN_LEFT, 0, 0);
+            gSPViewport(gMasterDisp++, gViewport);
+        } else if (D_800D1FB8[idx] == 0.0f || D_800D1FB8[idx] == 180.0f) { // Up or Down
+            gSPViewport(gMasterDisp++, gViewport);
+        }
+    } else {
+        // Handle free-move specific viewport alignments (if different)
+        if (D_800D1FB8[idx] == 270.0f) { // Right
+            gEXSetViewportAlign(gMasterDisp++, G_EX_ORIGIN_LEFT, 0, 0);
+            gSPViewport(gMasterDisp++, gViewport);
+        } else if (D_800D1FB8[idx] == 90.0f) { // Left
+            gEXSetViewportAlign(gMasterDisp++, G_EX_ORIGIN_RIGHT, -SCREEN_WIDTH * 4, 0);
+            gSPViewport(gMasterDisp++, gViewport);
+        } else if (D_800D1FB8[idx] == 0.0f || D_800D1FB8[idx] == 180.0f) { // Up or Down
+            gSPViewport(gMasterDisp++, gViewport);
+        }
     }
 
     Matrix_RotateZ(gGfxMatrix, M_DTOR * D_800D1FB8[idx], MTXF_APPLY);
@@ -918,8 +930,7 @@ void func_hud_8008A4DC(void);
 RECOMP_PATCH void func_hud_8008E5E8(void) {
 
     Game_InitFullViewport();
-    gEXSetRectAlign(gMasterDisp++, G_EX_ORIGIN_RIGHT, G_EX_ORIGIN_RIGHT, -(SCREEN_WIDTH) * 4, 0, -(SCREEN_WIDTH) * 4,
-                    0);
+    gEXSetRectAlign(gMasterDisp++, G_EX_ORIGIN_RIGHT, G_EX_ORIGIN_RIGHT, -(SCREEN_WIDTH) * 4, 0, -(SCREEN_WIDTH) * 4, 0);
     gEXSetViewportAlign(gMasterDisp++, G_EX_ORIGIN_RIGHT, -SCREEN_WIDTH * 4, 0);
     gSPViewport(gMasterDisp++, gViewport);
 
@@ -1375,6 +1386,8 @@ RECOMP_PATCH void Radio_Draw(void) {
     }
     gEXSetRectAlign(gMasterDisp++, G_EX_ORIGIN_NONE, G_EX_ORIGIN_NONE, 0, 0, 0, 0);
     gEXSetViewportAlign(gMasterDisp++, G_EX_ORIGIN_NONE, 0, 0);
+    gSPViewport(gMasterDisp++, gViewport);
+
 }
 #endif
 
@@ -1385,8 +1398,6 @@ void func_hud_8008BAE4(void);
 
 RECOMP_PATCH void func_hud_8008BC80(void) {
 
-    // gEXSetRectAlign(gMasterDisp++, G_EX_ORIGIN_LEFT, G_EX_ORIGIN_LEFT, 0, 0, 0, 0);
-
     if (gPlayState != PLAY_PAUSE) {
         func_hud_8008B9E8();
         Game_InitFullViewport();
@@ -1394,9 +1405,10 @@ RECOMP_PATCH void func_hud_8008BC80(void) {
         gSPViewport(gMasterDisp++, gViewport);
         func_hud_8008BAE4();
         gEXSetViewportAlign(gMasterDisp++, G_EX_ORIGIN_NONE, 0, 0);
+        gSPViewport(gMasterDisp++, gViewport);
+
     }
 
-    // gEXSetRectAlign(gMasterDisp++, G_EX_ORIGIN_NONE, G_EX_ORIGIN_NONE, 0, 0, 0, 0);
 }
 #endif
 
@@ -1631,6 +1643,18 @@ RECOMP_PATCH void HUD_DrawLevelClearStatusScreen(void) {
         func_hud_80087788();
         func_hud_80084B94(0);
         func_hud_8008B5B0(20.0f, 18.0f);
+    }
+}
+#endif
+
+#if 1 // Training_RingPassCount_Draw
+RECOMP_PATCH void Training_RingPassCount_Draw(void) {
+    if (gRingPassCount != 0) {
+        RCP_SetupDL(&gMasterDisp, SETUPDL_83);
+        gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, 255);
+        gEXSetRectAlign(gMasterDisp++, G_EX_ORIGIN_RIGHT, G_EX_ORIGIN_RIGHT, -(SCREEN_WIDTH) * 4, 0, -(SCREEN_WIDTH) * 4, 0);
+        func_hud_800869A0(250.0f, 50.0f, gRingPassCount, 1.0f, 0, 999);
+        gEXSetRectAlign(gMasterDisp++, G_EX_ORIGIN_NONE, G_EX_ORIGIN_NONE, 0, 0, 0, 0);
     }
 }
 #endif
