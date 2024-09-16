@@ -85,7 +85,7 @@ f32 sGroundPositions360z[4] = {
 void Bolse_DrawDynamicGround(void);
 
 
-#if 1 // Play_UpdateDynaFloor  ********
+#if 1 // Play_UpdateDynaFloor
 
 extern Vtx D_SO_6001C50[];
 extern Vtx D_SO_6004500[];
@@ -1374,10 +1374,102 @@ for (s32 i = -1; i <= 1; i += 2) {
 
     break;
 
-        case LEVEL_ZONESS:
+        case LEVEL_ZONESS: // @recomp
             RCP_SetupDL_29(gFogRed, gFogGreen, gFogBlue, gFogAlpha, gFogNear, gFogFar);
 
-            // Render the object at the center (no mirroring needed)
+            // Center Further (main object)
+            Matrix_Push(&gGfxMatrix);
+            Matrix_Translate(gGfxMatrix, 0.0f, 0.0f, -3000.0f, MTXF_APPLY); // Center Further
+            Matrix_Scale(gGfxMatrix, 3.0f, 2.0f, 3.0f, MTXF_APPLY);
+            Matrix_SetGfxMtx(&gMasterDisp);
+            if ((gGameFrameCount % 2) != 0) {
+                gSPDisplayList(gMasterDisp++, D_ZO_6008830);
+            } else {
+                gSPDisplayList(gMasterDisp++, D_ZO_600B0E0);
+            }
+            Matrix_Pop(&gGfxMatrix);
+
+            // Center Further - Left Mirror
+            Matrix_Push(&gGfxMatrix);
+            Matrix_Translate(gGfxMatrix, -4800.0f, 0.0f, -3000.0f, MTXF_APPLY); // Left (-4800.0f on X-axis)
+            Matrix_Scale(gGfxMatrix, -3.0f, 2.0f, 3.0f, MTXF_APPLY);            // Mirror by negative X scale
+            Matrix_SetGfxMtx(&gMasterDisp);
+            gSPClearGeometryMode(gMasterDisp++, G_CULL_BACK); // Disable backface culling
+            gSPTexture(gMasterDisp++, 0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON);
+            gDPSetTile(gMasterDisp++, G_IM_FMT_RGBA, G_IM_SIZ_16b, 0, 0, G_TX_RENDERTILE, 0, G_TX_WRAP, 5, G_TX_NOLOD,
+                       G_TX_WRAP, 5, G_TX_NOLOD);
+            if ((gGameFrameCount % 2) != 0) {
+                gSPDisplayList(gMasterDisp++, D_ZO_6008830);
+            } else {
+                gSPDisplayList(gMasterDisp++, D_ZO_600B0E0);
+            }
+            gSPSetGeometryMode(gMasterDisp++, G_CULL_BACK); // Re-enable backface culling
+            Matrix_Pop(&gGfxMatrix);
+
+            // Center Further - Right Mirror
+            Matrix_Push(&gGfxMatrix);
+            Matrix_Translate(gGfxMatrix, 4800.0f, 0.0f, -3000.0f, MTXF_APPLY); // Right (4800.0f on X-axis)
+            Matrix_Scale(gGfxMatrix, -3.0f, 2.0f, 3.0f, MTXF_APPLY);           // Mirror by negative X scale
+            Matrix_SetGfxMtx(&gMasterDisp);
+            gSPClearGeometryMode(gMasterDisp++, G_CULL_BACK); // Disable backface culling
+            gSPTexture(gMasterDisp++, 0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON);
+            gDPSetTile(gMasterDisp++, G_IM_FMT_RGBA, G_IM_SIZ_16b, 0, 0, G_TX_RENDERTILE, 0, G_TX_WRAP, 5, G_TX_NOLOD,
+                       G_TX_WRAP, 5, G_TX_NOLOD);
+            if ((gGameFrameCount % 2) != 0) {
+                gSPDisplayList(gMasterDisp++, D_ZO_6008830);
+            } else {
+                gSPDisplayList(gMasterDisp++, D_ZO_600B0E0);
+            }
+            gSPSetGeometryMode(gMasterDisp++, G_CULL_BACK); // Re-enable backface culling
+            Matrix_Pop(&gGfxMatrix);
+
+            // Center Far (main object)
+            Matrix_Push(&gGfxMatrix);
+            Matrix_Translate(gGfxMatrix, 0.0f, 0.0f, -6000.0f, MTXF_APPLY); // Center Far
+            Matrix_Scale(gGfxMatrix, 3.0f, 2.0f, 3.0f, MTXF_APPLY);
+            Matrix_SetGfxMtx(&gMasterDisp);
+            if ((gGameFrameCount % 2) != 0) {
+                gSPDisplayList(gMasterDisp++, D_ZO_6008830);
+            } else {
+                gSPDisplayList(gMasterDisp++, D_ZO_600B0E0);
+            }
+            Matrix_Pop(&gGfxMatrix);
+
+            // Center Far - Left Mirror
+            Matrix_Push(&gGfxMatrix);
+            Matrix_Translate(gGfxMatrix, -4800.0f, 0.0f, -6000.0f, MTXF_APPLY); // Left (-4800.0f on X-axis)
+            Matrix_Scale(gGfxMatrix, -3.0f, 2.0f, 3.0f, MTXF_APPLY);            // Mirror by negative X scale
+            Matrix_SetGfxMtx(&gMasterDisp);
+            gSPClearGeometryMode(gMasterDisp++, G_CULL_BACK); // Disable backface culling
+            gSPTexture(gMasterDisp++, 0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON);
+            gDPSetTile(gMasterDisp++, G_IM_FMT_RGBA, G_IM_SIZ_16b, 0, 0, G_TX_RENDERTILE, 0, G_TX_WRAP, 5, G_TX_NOLOD,
+                       G_TX_WRAP, 5, G_TX_NOLOD);
+            if ((gGameFrameCount % 2) != 0) {
+                gSPDisplayList(gMasterDisp++, D_ZO_6008830);
+            } else {
+                gSPDisplayList(gMasterDisp++, D_ZO_600B0E0);
+            }
+            gSPSetGeometryMode(gMasterDisp++, G_CULL_BACK); // Re-enable backface culling
+            Matrix_Pop(&gGfxMatrix);
+
+            // Center Far - Right Mirror
+            Matrix_Push(&gGfxMatrix);
+            Matrix_Translate(gGfxMatrix, 4800.0f, 0.0f, -6000.0f, MTXF_APPLY); // Right (4800.0f on X-axis)
+            Matrix_Scale(gGfxMatrix, -3.0f, 2.0f, 3.0f, MTXF_APPLY);           // Mirror by negative X scale
+            Matrix_SetGfxMtx(&gMasterDisp);
+            gSPClearGeometryMode(gMasterDisp++, G_CULL_BACK); // Disable backface culling
+            gSPTexture(gMasterDisp++, 0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON);
+            gDPSetTile(gMasterDisp++, G_IM_FMT_RGBA, G_IM_SIZ_16b, 0, 0, G_TX_RENDERTILE, 0, G_TX_WRAP, 5, G_TX_NOLOD,
+                       G_TX_WRAP, 5, G_TX_NOLOD);
+            if ((gGameFrameCount % 2) != 0) {
+                gSPDisplayList(gMasterDisp++, D_ZO_6008830);
+            } else {
+                gSPDisplayList(gMasterDisp++, D_ZO_600B0E0);
+            }
+            gSPSetGeometryMode(gMasterDisp++, G_CULL_BACK); // Re-enable backface culling
+            Matrix_Pop(&gGfxMatrix);
+
+            // Center (Main object at center, no mirroring)
             Matrix_Push(&gGfxMatrix);
             Matrix_Translate(gGfxMatrix, 0.0f, 0.0f, -1500.0f, MTXF_APPLY); // Center
             Matrix_Scale(gGfxMatrix, 3.0f, 2.0f, 3.0f, MTXF_APPLY);
@@ -1389,57 +1481,140 @@ for (s32 i = -1; i <= 1; i += 2) {
             }
             Matrix_Pop(&gGfxMatrix);
 
-            // Render the object to the left (mirror the texture horizontally)
+            // Center - Left Mirror
             Matrix_Push(&gGfxMatrix);
-            Matrix_Translate(gGfxMatrix, -4800.0f, 0.0f, -1500.0f, MTXF_APPLY); // Left (-8000.0f on X-axis)
-            Matrix_Scale(gGfxMatrix, -3.0f, 2.0f, 3.0f, MTXF_APPLY);            // Negative X scale to mirror geometry
+            Matrix_Translate(gGfxMatrix, -4800.0f, 0.0f, -1500.0f, MTXF_APPLY); // Left (-4800.0f on X-axis)
+            Matrix_Scale(gGfxMatrix, -3.0f, 2.0f, 3.0f, MTXF_APPLY);            // Mirror by negative X scale
             Matrix_SetGfxMtx(&gMasterDisp);
-
-            // Disable backface culling for the mirrored object
-            gSPClearGeometryMode(gMasterDisp++, G_CULL_BACK);
-
-            // Render the texture
+            gSPClearGeometryMode(gMasterDisp++, G_CULL_BACK); // Disable backface culling
             gSPTexture(gMasterDisp++, 0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON);
             gDPSetTile(gMasterDisp++, G_IM_FMT_RGBA, G_IM_SIZ_16b, 0, 0, G_TX_RENDERTILE, 0, G_TX_WRAP, 5, G_TX_NOLOD,
                        G_TX_WRAP, 5, G_TX_NOLOD);
-
             if ((gGameFrameCount % 2) != 0) {
                 gSPDisplayList(gMasterDisp++, D_ZO_6008830);
             } else {
                 gSPDisplayList(gMasterDisp++, D_ZO_600B0E0);
             }
-
             gSPSetGeometryMode(gMasterDisp++, G_CULL_BACK); // Re-enable backface culling
             Matrix_Pop(&gGfxMatrix);
 
-            // Render the object to the right (mirror the texture horizontally)
+            // Center - Right Mirror
             Matrix_Push(&gGfxMatrix);
-            Matrix_Translate(gGfxMatrix, 4800.0f, 0.0f, -1500.0f, MTXF_APPLY); // Right (8000.0f on X-axis)
-            Matrix_Scale(gGfxMatrix, -3.0f, 2.0f, 3.0f, MTXF_APPLY);           // Negative X scale to mirror geometry
+            Matrix_Translate(gGfxMatrix, 4800.0f, 0.0f, -1500.0f, MTXF_APPLY); // Right (4800.0f on X-axis)
+            Matrix_Scale(gGfxMatrix, -3.0f, 2.0f, 3.0f, MTXF_APPLY);           // Mirror by negative X scale
             Matrix_SetGfxMtx(&gMasterDisp);
-
-            // Disable backface culling for the mirrored object
-            gSPClearGeometryMode(gMasterDisp++, G_CULL_BACK);
-
-            // Render the texture
+            gSPClearGeometryMode(gMasterDisp++, G_CULL_BACK); // Disable backface culling
             gSPTexture(gMasterDisp++, 0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON);
             gDPSetTile(gMasterDisp++, G_IM_FMT_RGBA, G_IM_SIZ_16b, 0, 0, G_TX_RENDERTILE, 0, G_TX_WRAP, 5, G_TX_NOLOD,
                        G_TX_WRAP, 5, G_TX_NOLOD);
-
             if ((gGameFrameCount % 2) != 0) {
                 gSPDisplayList(gMasterDisp++, D_ZO_6008830);
             } else {
                 gSPDisplayList(gMasterDisp++, D_ZO_600B0E0);
             }
-
             gSPSetGeometryMode(gMasterDisp++, G_CULL_BACK); // Re-enable backface culling
             Matrix_Pop(&gGfxMatrix);
+
+            // Center (Main object at center, no mirroring) Near
+            Matrix_Push(&gGfxMatrix);
+            Matrix_Translate(gGfxMatrix, 0.0f, 0.0f, 0.0f, MTXF_APPLY); // Center
+            Matrix_Scale(gGfxMatrix, 3.0f, 2.0f, 3.0f, MTXF_APPLY);
+            Matrix_SetGfxMtx(&gMasterDisp);
+            if ((gGameFrameCount % 2) != 0) {
+                gSPDisplayList(gMasterDisp++, D_ZO_6008830);
+            } else {
+                gSPDisplayList(gMasterDisp++, D_ZO_600B0E0);
+            }
+            Matrix_Pop(&gGfxMatrix);
+
+            // Center - Left Mirror Near
+            Matrix_Push(&gGfxMatrix);
+            Matrix_Translate(gGfxMatrix, -4800.0f, 0.0f, 0.0f, MTXF_APPLY); // Left (-4800.0f on X-axis)
+            Matrix_Scale(gGfxMatrix, -3.0f, 2.0f, 3.0f, MTXF_APPLY);            // Mirror by negative X scale
+            Matrix_SetGfxMtx(&gMasterDisp);
+            gSPClearGeometryMode(gMasterDisp++, G_CULL_BACK); // Disable backface culling
+            gSPTexture(gMasterDisp++, 0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON);
+            gDPSetTile(gMasterDisp++, G_IM_FMT_RGBA, G_IM_SIZ_16b, 0, 0, G_TX_RENDERTILE, 0, G_TX_WRAP, 5, G_TX_NOLOD,
+                       G_TX_WRAP, 5, G_TX_NOLOD);
+            if ((gGameFrameCount % 2) != 0) {
+                gSPDisplayList(gMasterDisp++, D_ZO_6008830);
+            } else {
+                gSPDisplayList(gMasterDisp++, D_ZO_600B0E0);
+            }
+            gSPSetGeometryMode(gMasterDisp++, G_CULL_BACK); // Re-enable backface culling
+            Matrix_Pop(&gGfxMatrix);
+
+            // Center - Right Mirror Near
+            Matrix_Push(&gGfxMatrix);
+            Matrix_Translate(gGfxMatrix, 4800.0f, 0.0f, 0.0f, MTXF_APPLY); // Right (4800.0f on X-axis)
+            Matrix_Scale(gGfxMatrix, -3.0f, 2.0f, 3.0f, MTXF_APPLY);           // Mirror by negative X scale
+            Matrix_SetGfxMtx(&gMasterDisp);
+            gSPClearGeometryMode(gMasterDisp++, G_CULL_BACK); // Disable backface culling
+            gSPTexture(gMasterDisp++, 0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON);
+            gDPSetTile(gMasterDisp++, G_IM_FMT_RGBA, G_IM_SIZ_16b, 0, 0, G_TX_RENDERTILE, 0, G_TX_WRAP, 5, G_TX_NOLOD,
+                       G_TX_WRAP, 5, G_TX_NOLOD);
+            if ((gGameFrameCount % 2) != 0) {
+                gSPDisplayList(gMasterDisp++, D_ZO_6008830);
+            } else {
+                gSPDisplayList(gMasterDisp++, D_ZO_600B0E0);
+            }
+            gSPSetGeometryMode(gMasterDisp++, G_CULL_BACK); // Re-enable backface culling
+            Matrix_Pop(&gGfxMatrix);            
+
+            
+            // Center (Main object at center, no mirroring) Nearer
+            Matrix_Push(&gGfxMatrix);
+            Matrix_Translate(gGfxMatrix, 0.0f, 0.0f, 1500.0f, MTXF_APPLY); // Center
+            Matrix_Scale(gGfxMatrix, 3.0f, 2.0f, 3.0f, MTXF_APPLY);
+            Matrix_SetGfxMtx(&gMasterDisp);
+            if ((gGameFrameCount % 2) != 0) {
+                gSPDisplayList(gMasterDisp++, D_ZO_6008830);
+            } else {
+                gSPDisplayList(gMasterDisp++, D_ZO_600B0E0);
+            }
+            Matrix_Pop(&gGfxMatrix);
+
+            // Center - Left Mirror Nearer
+            Matrix_Push(&gGfxMatrix);
+            Matrix_Translate(gGfxMatrix, -4800.0f, 0.0f, 1500.0f, MTXF_APPLY); // Left (-4800.0f on X-axis)
+            Matrix_Scale(gGfxMatrix, -3.0f, 2.0f, 3.0f, MTXF_APPLY);            // Mirror by negative X scale
+            Matrix_SetGfxMtx(&gMasterDisp);
+            gSPClearGeometryMode(gMasterDisp++, G_CULL_BACK); // Disable backface culling
+            gSPTexture(gMasterDisp++, 0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON);
+            gDPSetTile(gMasterDisp++, G_IM_FMT_RGBA, G_IM_SIZ_16b, 0, 0, G_TX_RENDERTILE, 0, G_TX_WRAP, 5, G_TX_NOLOD,
+                       G_TX_WRAP, 5, G_TX_NOLOD);
+            if ((gGameFrameCount % 2) != 0) {
+                gSPDisplayList(gMasterDisp++, D_ZO_6008830);
+            } else {
+                gSPDisplayList(gMasterDisp++, D_ZO_600B0E0);
+            }
+            gSPSetGeometryMode(gMasterDisp++, G_CULL_BACK); // Re-enable backface culling
+            Matrix_Pop(&gGfxMatrix);
+
+            // Center - Right Mirror Nearer
+            Matrix_Push(&gGfxMatrix);
+            Matrix_Translate(gGfxMatrix, 4800.0f, 0.0f, 1500.0f, MTXF_APPLY); // Right (4800.0f on X-axis)
+            Matrix_Scale(gGfxMatrix, -3.0f, 2.0f, 3.0f, MTXF_APPLY);           // Mirror by negative X scale
+            Matrix_SetGfxMtx(&gMasterDisp);
+            gSPClearGeometryMode(gMasterDisp++, G_CULL_BACK); // Disable backface culling
+            gSPTexture(gMasterDisp++, 0xFFFF, 0xFFFF, 0, G_TX_RENDERTILE, G_ON);
+            gDPSetTile(gMasterDisp++, G_IM_FMT_RGBA, G_IM_SIZ_16b, 0, 0, G_TX_RENDERTILE, 0, G_TX_WRAP, 5, G_TX_NOLOD,
+                       G_TX_WRAP, 5, G_TX_NOLOD);
+            if ((gGameFrameCount % 2) != 0) {
+                gSPDisplayList(gMasterDisp++, D_ZO_6008830);
+            } else {
+                gSPDisplayList(gMasterDisp++, D_ZO_600B0E0);
+            }
+            gSPSetGeometryMode(gMasterDisp++, G_CULL_BACK); // Re-enable backface culling
+            Matrix_Pop(&gGfxMatrix);            
+
 
             break;
+        }
+        Matrix_Pop(&gGfxMatrix);
     }
-    Matrix_Pop(&gGfxMatrix);
-}
 #endif
+
 
 #if 1 // Full scope Starfield
 
@@ -1447,7 +1622,7 @@ extern f32 D_bg_8015F96C;
 
 f32 xScale = 2.0f;  // Apply a scaling factor for X-axis expansion
 
-#if 1 // Background_DrawStarfield
+#if 0 // Background_DrawStarfield
 
 RECOMP_PATCH void Background_DrawStarfield(void) {
     f32 by;
@@ -1579,6 +1754,7 @@ RECOMP_PATCH void Camera_SetStarfieldPos(f32 xEye, f32 yEye, f32 zEye, f32 xAt, 
 }
 #endif
 
+
 #if 1 // Play_GenerateStarfield
 
 RECOMP_PATCH void Play_GenerateStarfield(void) {
@@ -1668,108 +1844,8 @@ RECOMP_PATCH void Background_DrawPartialStarfield(s32 yMin, s32 yMax) { // Stars
 }
 #endif
 
-#if 0// Background_DrawStarfield TESTING
+#if 1// Background_DrawStarfield TESTING
 
-extern void* alloc_display_list(int size);
-
-RECOMP_PATCH void Background_DrawStarfield(void) {
-    f32 by;
-    f32 bx;
-    s16 vy;
-    s16 vx;
-    s32 i;
-    s32 starCount;
-    f32 zCos;
-    f32 zSin;
-    f32 xField;
-    f32 yField;
-    f32* xStar;
-    f32* yStar;
-    u32* color;
-
-    Mtx projectionMtx;  // Static allocation for the projection matrix
-
-    // Set up the scissor area for clipping the rendering
-    gDPPipeSync(gMasterDisp++);
-    gDPSetCycleType(gMasterDisp++, G_CYC_FILL);
-    gDPSetCombineMode(gMasterDisp++, G_CC_SHADE, G_CC_SHADE);
-    gDPSetRenderMode(gMasterDisp++, G_RM_OPA_SURF, G_RM_OPA_SURF2);
-
-    // Set up the orthographic projection matrix for the viewport
-    guOrtho(&projectionMtx, -160, 160, -120, 120, -1000, 1000, 1.0f);
-    gSPMatrix(gMasterDisp++, &projectionMtx, G_MTX_PROJECTION | G_MTX_LOAD | G_MTX_NOPUSH);
-
-    starCount = gStarCount;
-    if (starCount != 0) {
-        if (gStarfieldX >= 480) {
-            gStarfieldX -= 480;
-        }
-        if (gStarfieldY >= 360) {
-            gStarfieldY -= 360;
-        }
-        if (gStarfieldX < 0.0f) {
-            gStarfieldX += 480;
-        }
-        if (gStarfieldY < 0.0f) {
-            gStarfieldY += 360;
-        }
-
-        xField = gStarfieldX;
-        yField = gStarfieldY;
-
-        xStar = gStarOffsetsX;
-        yStar = gStarOffsetsY;
-        color = gStarFillColors;
-
-        if (gGameState != GSTATE_PLAY) {
-            starCount = 1000;
-        }
-
-        zCos = __cosf(gStarfieldRoll);
-        zSin = __sinf(gStarfieldRoll);
-
-        for (i = 0; i < starCount; i++, yStar++, xStar++, color++) {
-            bx = (*xStar + xField) * xScale;
-            by = *yStar + yField;
-
-            if (bx >= 400 * xScale) {
-                bx -= 480 * xScale;
-            }
-            bx -= 160 * xScale;
-
-            if (by >= 300) {
-                by -= 360;
-            }
-            by -= 120;
-
-            vx = (zCos * bx) + (zSin * by) + 160;
-            vy = (-zSin * bx) + (zCos * by) + 120;
-
-            // Star rendering logic with ortho viewport
-            if ((vx >= -160) && (vx < 160) && (vy > -120) && (vy < 120)) {
-                Vtx starVtx[1];  // Use a local array (stack-allocated) for a single vertex
-
-                starVtx[0].v.ob[0] = vx;
-                starVtx[0].v.ob[1] = vy;
-                starVtx[0].v.ob[2] = 0;
-                starVtx[0].v.flag = 0;
-                starVtx[0].v.tc[0] = 0;
-                starVtx[0].v.tc[1] = 0;
-                starVtx[0].v.cn[0] = (*color >> 24) & 0xFF;
-                starVtx[0].v.cn[1] = (*color >> 16) & 0xFF;
-                starVtx[0].v.cn[2] = (*color >> 8) & 0xFF;
-                starVtx[0].v.cn[3] = *color & 0xFF;
-
-                gSPVertex(gMasterDisp++, starVtx, 1, 0);
-                gSP1Triangle(gMasterDisp++, 0, 0, 0, 0);  // Draw point
-            }
-        }
-    }
-
-    // End rendering
-    gDPPipeSync(gMasterDisp++);
-    gDPSetColorDither(gMasterDisp++, G_CD_MAGICSQ);
-}
 
 #endif
 
