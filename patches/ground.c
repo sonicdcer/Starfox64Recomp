@@ -408,7 +408,11 @@ RECOMP_PATCH void Background_DrawGround(void) {
                     Matrix_Translate(gGfxMatrix, sGroundPositions360x_FIX[i], 0.0f, sGroundPositions360z_FIX[i],
                                      MTXF_APPLY);
                     Matrix_Scale(gGfxMatrix, 1.5f, 1.0f, 1.0f, MTXF_APPLY);
-                    Matrix_SetGfxMtx(&gMasterDisp);
+                    // Matrix_SetGfxMtx(&gMasterDisp);
+                    Matrix_ToMtx(gGfxMtx);
+                    gEXMatrix(gMasterDisp++, gGfxMtx, G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW | G_EX_MTX_PREVIOUS,
+                              &gIdentityMtx);
+                    gGfxMtx++;
                     gSPDisplayList(gMasterDisp++, D_TR_6005880);
                     Matrix_Pop(&gGfxMatrix);
                 }
