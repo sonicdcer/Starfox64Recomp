@@ -983,7 +983,7 @@ RECOMP_PATCH void Map_Draw(void) {
 
     if (D_menu_801CD96C) {
         // @recomp Tag the transform.
-        gEXMatrixGroupDecomposedSkipAll(gMasterDisp++, TAG_PEPPER_FACE, G_EX_PUSH, G_MTX_MODELVIEW, G_EX_EDIT_ALLOW);
+        gEXMatrixGroupDecomposedNormal(gMasterDisp++, TAG_PEPPER_FACE, G_EX_PUSH, G_MTX_MODELVIEW, G_EX_EDIT_ALLOW);
 
         Map_GralPepperFace_Draw();
 
