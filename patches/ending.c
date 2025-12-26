@@ -56,20 +56,22 @@ void Animation_DrawSkeleton_SkipInterpolation(s32 mode, Limb** skeletonSegment, 
                                               OverrideLimbDraw overrideLimbDraw, PostLimbDraw postLimbDraw, void* data,
                                               Matrix* transform);
 
+int gEndingBorderFrame = 0;
+
 void DrawBorders(void) {
 #if ENDING_BORDERS == 1
-    static int frame = 0;
+    // static int frame = 0;
     int max_frame = 1800; // Duration of the animation in frames
     int margin = 20;
     int extraOffset = SCREEN_WIDTH * 2; // Increase this value to push rectangles further out
     float t;
 
     if (gGameState == GSTATE_ENDING) {
-        if (frame > max_frame) {
-            frame = max_frame;
+        if (gEndingBorderFrame > max_frame) {
+            gEndingBorderFrame = max_frame;
         }
 
-        t = (float) frame / max_frame;
+        t = (float) gEndingBorderFrame / max_frame;
 
         // Set up rendering state for opaque red rectangles
         RCP_SetupDL_12();
@@ -95,9 +97,9 @@ void DrawBorders(void) {
 
         gDPSetScissor(gMasterDisp++, 3, (SCREEN_WIDTH - 320) / 2, 0, (SCREEN_WIDTH + 320) / 2, 240);
 
-        frame++; // Increment frame count for animation
+        gEndingBorderFrame++; // Increment frame count for animation
     } else {
-        frame = 0; // Reset frame when not in ending state
+        gEndingBorderFrame = 0; // Reset frame when not in ending state
     }
 #endif
 }
