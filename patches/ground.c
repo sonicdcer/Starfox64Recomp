@@ -107,9 +107,10 @@ void AllRangeGround_Draw(void) {
             gEXMatrixGroupDecomposedSkipAll(gMasterDisp++, TAG_GROUND_ALL_RANGE, G_EX_PUSH, G_MTX_MODELVIEW,
                                             G_EX_EDIT_NONE);
         } else {
-            // Fixes floor weirdness during the fortuna explosion cutscene
-            if ((gCurrentLevel == LEVEL_FORTUNA) && (gPlayer[0].state != PLAYERSTATE_ACTIVE) &&
-                (gPlayer[0].state != PLAYERSTATE_U_TURN)) {
+            // Fixes floor weirdness during the fortuna explosion cutscene and venom 2 escape after killing andross
+            if (((gCurrentLevel == LEVEL_FORTUNA) && (gPlayer[0].state != PLAYERSTATE_ACTIVE) &&
+                 (gPlayer[0].state != PLAYERSTATE_U_TURN)) ||
+                ((gCurrentLevel == LEVEL_VENOM_2) && (gPlayer[0].csState > 2) && (gPlayer[0].csState < 5))) {
                 // @recomp Tag the transform.
                 gEXMatrixGroupDecomposedNormal(gMasterDisp++, TAG_GROUND_ON_RAILS, G_EX_PUSH, G_MTX_MODELVIEW,
                                                G_EX_EDIT_ALLOW);
