@@ -13,15 +13,13 @@
 #include "i4.h"
 #include "i5.h"
 #include "i6.h"
+#include "sf64_record.h"
 
 void Cutscene_WarpZoneComplete(Player* player);
 void Cutscene_FortunaComplete(Player* player);
 void Cutscene_CoComplete2(Player* player);
 
-typedef struct Record {
-    u8 vis;
-    u16 frame;
-} Record;
+int gWarpzoneCsFrameCount = 0;
 
 // clang-format off
 
@@ -169,6 +167,28 @@ Record gAndrossRobotKillCutscene2[] = {
     { 3, 207 },
     { 2, 211 },
 };
+
+Record gWarpzoneCsRecord[19] = {
+    { 2, 1 },
+    { 3, 3 },
+    { 4, 4 },
+    { 3, 8 },
+    { 2, 9 },
+    { 3, 52 },
+    { 2, 54 },
+    { 3, 69 },
+    { 2, 70 },
+    { 3, 75 },
+    { 2, 76 },
+    { 3, 79 },
+    { 2, 117 },
+    { 3, 118 },
+    { 2, 120 },
+    { 3, 145 },
+    { 2, 215 },
+    { 3, 216 },
+    { 2, 230 },
+};
 // clang-format on
 
 void UpdateVisPerFrameFromRecording(Record* record, s32 maxFrames) {
@@ -180,6 +200,20 @@ void UpdateVisPerFrameFromRecording(Record* record, s32 maxFrames) {
 
     for (i = 0; i < maxFrames; i++) {
         if (gCsFrameCount == record[i].frame) {
+            gVIsPerFrame = record[i].vis;
+        }
+    }
+}
+
+void UpdateVisPerFrameFromRecording_Warpzone(Record* record, s32 maxFrames) {
+    int i;
+
+    if (gWarpzoneCsFrameCount > record[maxFrames - 1].frame) {
+        return;
+    }
+
+    for (i = 0; i < maxFrames; i++) {
+        if (gWarpzoneCsFrameCount == record[i].frame) {
             gVIsPerFrame = record[i].vis;
         }
     }

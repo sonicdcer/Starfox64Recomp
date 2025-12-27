@@ -5,6 +5,7 @@
 #include "i3.h"
 #include "i5.h"
 #include "i6.h"
+#include "sf64_record.h"
 
 #define __sinf __sinf_recomp
 
@@ -320,6 +321,15 @@ RECOMP_PATCH void Display_Update(void) {
     Display_DrawHelpAlert();
     sPlayersVisible[gPlayerNum] = false;
     Matrix_Pop(&gGfxMatrix);
+    
+    // @recomp: Warpzone cutscene recording
+    if (gPlayer[0].state == PLAYERSTATE_ENTER_WARP_ZONE) {
+        if (gPlayer[0].csState == 0) {
+            gWarpzoneCsFrameCount = 0;
+        }
+        gWarpzoneCsFrameCount++;
+        UpdateVisPerFrameFromRecording_Warpzone(gWarpzoneCsRecord, ARRAY_COUNT(gWarpzoneCsRecord));
+    }
 
 // @recomp DEBUG SECTION:
 #if DEBUG_CHEATS == 1
@@ -560,6 +570,20 @@ RECOMP_PATCH void Display_Update(void) {
 #endif
 
     // D_display_800CA220 = 2;
+
+    // For debugging cutscene timings
+#if 0
+    RCP_SetupDL(&gMasterDisp, SETUPDL_83);
+    gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 0, 255);
+    Graphics_DisplaySmallText(10 + 210, 180, 1.0f, 1.0f, "VIS:");
+    Graphics_DisplaySmallNumber(60 + 210, 180, (int) gVIsPerFrame);
+    Graphics_DisplaySmallText(10 + 210, 190, 1.0f, 1.0f, "CSFMS:");
+    Graphics_DisplaySmallNumber(60 + 210, 190, (int) gCsFrameCount);
+    Graphics_DisplaySmallText(10 + 210, 200, 1.0f, 1.0f, "PLTIM:");
+    Graphics_DisplaySmallNumber(60 + 220, 200, (int) gPlayer->csTimer);
+    Graphics_DisplaySmallText(10 + 210, 210, 1.0f, 1.0f, "CSSTATE:");
+    Graphics_DisplaySmallNumber(60 + 220, 210, (int) gPlayer->csState);
+#endif
 }
 
 // for draw distance tests
