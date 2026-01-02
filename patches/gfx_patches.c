@@ -146,6 +146,7 @@ RECOMP_PATCH void Graphics_ThreadEntry(void* arg0) {
             (gUnkDisp1 > END_OF_ARRAY(gExGfxPool->unkDL1)) || (gMasterDisp > END_OF_ARRAY(gExGfxPool->masterDL)) ||
             (gUnkDisp2 > END_OF_ARRAY(gExGfxPool->unkDL2)) || (gLight > END_OF_ARRAY(gExGfxPool->lights))) {
             // CRASH
+            recomp_printf("GfxPool out of bounds!\n");
             *(volatile int*) 0 = 0;
         }
         Graphics_SetTask();
