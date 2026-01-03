@@ -25,6 +25,15 @@ extern int gEndingBorderFrame;
 s32 Title_GetRankTotalHits(void);
 s32 Option_RankInPos_Check(void);
 
+void Option_OrdinalNumbers_Draw(s32, s32, s32);
+void Option_RankingName_Draw(s32, s32, s32);
+void Option_RankingTotalHits_Draw(s32, s32, s32);
+void Map_RemainingLives_Draw(s32, s32, s32);
+void Option_RankingTeamAlive_Draw(s32, s32, s32);
+void Option_RankingRoute_Draw(s32, f32, f32);
+void Option_Menu_Push(void);
+void Option_Color_FlashRed(f32*);
+
 typedef enum OptionId {
     /* 1000 */ OPTION_MAIN_MENU = 1000,
     /* 2000 */ OPTION_VERSUS_STAGE = 2000,
@@ -61,7 +70,7 @@ RECOMP_PATCH void Option_80197914(void) {
     for (i = 0, vec1 = D_menu_801AF100, vec2 = D_menu_801AF118; i < 2; i++, vec1++, vec2++) {
         Matrix_Push(&gGfxMatrix);
         Matrix_Translate(gGfxMatrix, vec1->x, vec1->y, -500.0f, MTXF_APPLY);
-        
+
         // @recomp: Increase the scale by 2.5f to compensate for missing borders
         Matrix_Scale(gGfxMatrix, vec2->x * 4, vec2->y + 2.5f, 1.0f, MTXF_APPLY);
         Matrix_SetGfxMtx(&gMasterDisp);
