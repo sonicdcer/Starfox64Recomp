@@ -1180,6 +1180,7 @@ RECOMP_PATCH void Map_Path_Draw(s32 index) {
 }
 #endif
 
+#if 0
 RECOMP_PATCH void Map_Prologue_Draw(void) {
     s32 i;
     static f32 sPrologueTextFadeTexUpperYpos = 71.0f;
@@ -1210,7 +1211,7 @@ RECOMP_PATCH void Map_Prologue_Draw(void) {
     // @recomp:
     // Background_DrawPartialStarfield(71, 118);
     // Background_DrawPartialStarfield(205, 239);
-    Background_DrawStarfield();
+    // Background_DrawStarfield();
 
     RCP_SetupDL(&gMasterDisp, SETUPDL_76);
     gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, sPrologueCurrentTexAlpha);
@@ -1236,5 +1237,6 @@ RECOMP_PATCH void Map_Prologue_Draw(void) {
         }
     }
 }
+#endif
 
 #endif

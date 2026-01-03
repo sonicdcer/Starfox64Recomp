@@ -269,6 +269,7 @@ RECOMP_PATCH void Option_Setup(void) {
     AUDIO_PLAY_BGM(NA_BGM_SELECT);
 }
 
+#if 0
 RECOMP_PATCH void Option_RankingMenu2_Draw(void) {
     f32 var_fs0;
     f32 var_fs1;
@@ -307,7 +308,7 @@ RECOMP_PATCH void Option_RankingMenu2_Draw(void) {
     // @recomp:
     // Background_DrawPartialStarfield(0, 70);
     // Background_DrawPartialStarfield(170, 239);
-    Background_DrawStarfield();
+    // Background_DrawStarfield();
 
     RCP_SetupDL(&gMasterDisp, SETUPDL_83);
 
@@ -331,5 +332,6 @@ RECOMP_PATCH void Option_RankingMenu2_Draw(void) {
 
     Lib_TextureRect_IA8_MirY(&gMasterDisp, D_OPT_800D070, 16, 16, 150.0f, 200.0f, 1.0f, 1.0f);
 }
+#endif
 
 #endif
