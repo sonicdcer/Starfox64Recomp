@@ -1,3 +1,4 @@
+#include "patches.h"
 #include "sf64audio_provisional.h"
 
 #define RECOMP_EXPORT __attribute__((section(".recomp_export")))
@@ -5,6 +6,8 @@
 #define RECOMP_FORCE_PATCH __attribute__((section(".recomp_force_patch")))
 
 void AudioHeap_UnapplySampleCache(SampleCacheEntry* entry, Sample* sample);
+
+SPTask* sNewAudioTasks_recomp[2];
 
 // @recomp Fix undefined behaviour in audio, present in the original game
 RECOMP_PATCH void AudioHeap_DiscardSampleCaches(void) {
@@ -53,5 +56,87 @@ RECOMP_PATCH void AudioHeap_DiscardSampleCaches(void) {
                 }
             }
         }
+    }
+}
+
+RECOMP_PATCH void Main_Initialize(void) {
+    u8 i;
+
+    gVIsPerFrame = 0;
+    gSysFrameCount = 0;
+    gStartNMI = false;
+    gStopTasks = false;
+    gFillScreenColor = 0;
+    gFillScreen = false;
+    gCurrentTask = NULL;
+
+    for (i = 0; i < ARRAY_COUNT(sAudioTasks); i += 1) {
+        sAudioTasks[i] = NULL;
+    }
+    for (i = 0; i < ARRAY_COUNT(sGfxTasks); i += 1) {
+        sGfxTasks[i] = NULL;
+    }
+    for (i = 0; i < ARRAY_COUNT(sNewAudioTasks_recomp); i += 1) {
+        sNewAudioTasks_recomp[i] = NULL;
+    }
+    for (i = 0; i < ARRAY_COUNT(sNewGfxTasks); i += 1) {
+        sNewGfxTasks[i] = NULL;
+    }
+}
+
+RECOMP_PATCH void Main_GetNewTasks(void) {
+    u8 i;
+    SPTask** audioTask;
+    SPTask** gfxTask;
+    SPTask** newAudioTask;
+    SPTask** newGfxTask;
+    OSMesg spTaskMsg;
+    SPTask* newTask;
+
+    newAudioTask = sNewAudioTasks_recomp;
+    newGfxTask = sNewGfxTasks;
+    for (i = 0; i < ARRAY_COUNT(sNewAudioTasks_recomp); i += 1) {
+        *(newAudioTask++) = NULL;
+    }
+    for (i = 0; i < ARRAY_COUNT(sNewGfxTasks); i += 1) {
+        *(newGfxTask++) = NULL;
+    }
+
+    newAudioTask = sNewAudioTasks_recomp;
+    newGfxTask = sNewGfxTasks;
+    while (MQ_GET_MESG(&gTaskMesgQueue, &spTaskMsg)) {
+        newTask = (SPTask*) spTaskMsg;
+        newTask->state = SPTASK_STATE_NOT_STARTED;
+
+        switch (newTask->task.t.type) {
+            case M_AUDTASK:
+                *(newAudioTask++) = newTask;
+                break;
+            case M_GFXTASK:
+                *(newGfxTask++) = newTask;
+                break;
+        }
+    }
+    newAudioTask = sNewAudioTasks_recomp;
+    newGfxTask = sNewGfxTasks;
+    audioTask = sAudioTasks;
+    gfxTask = sGfxTasks;
+
+    for (i = 0; i < ARRAY_COUNT(sAudioTasks); i += 1, audioTask++) {
+        if (*audioTask == NULL) {
+            break;
+        }
+    }
+    for ((void) i; i < ARRAY_COUNT(sAudioTasks); i += 1) {
+        *(audioTask++) = *(newAudioTask++);
+    }
+
+    for (i = 0; i < ARRAY_COUNT(sGfxTasks); i += 1, gfxTask++) {
+        if (*gfxTask == NULL) {
+            break;
+        }
+    }
+    for ((void) i; i < ARRAY_COUNT(sGfxTasks); i += 1) {
+        *(gfxTask++) = *(newGfxTask++);
     }
 }
