@@ -35,7 +35,7 @@ static Vtx starVerts[4] = {
 };
 
 #if 1
-// @recomp: Starfield drawn with triangles, re-engineered by @Tharo & @TheBoy181
+// @recomp: Starfield drawn with triangles, re-engineered by @Tharo
 RECOMP_PATCH void Background_DrawStarfield(void) {
     f32 by;
     f32 bx;
@@ -348,12 +348,14 @@ RECOMP_PATCH void Play_SetupStarfield(void) {
     gStarfieldY = currentScreenHeight;
 }
 
-#if 1                                                                   // Background_DrawPartialStarfield
-RECOMP_PATCH void Background_DrawPartialStarfield(s32 yMin, s32 yMax) { // Stars that are in the Epilogue
+#if 1
+// Background_DrawPartialStarfield
+// Stars that are in the Epilogue
+RECOMP_PATCH void Background_DrawPartialStarfield(s32 yMin, s32 yMax) {
     f32 by;
     f32 bx;
-    s16 vy;
-    s16 vx;
+    f32 vy;
+    f32 vx;
     s32 i;
     s32 starCount;
     f32 cos;
@@ -363,6 +365,9 @@ RECOMP_PATCH void Background_DrawPartialStarfield(s32 yMin, s32 yMax) { // Stars
     f32* xStar;
     f32* yStar;
     u32* color;
+
+    yMin += 245;
+    yMax += 245;
 
     // Get current screen dimensions
     float currentScreenWidth = gCurrentScreenWidth;
@@ -413,16 +418,28 @@ RECOMP_PATCH void Background_DrawPartialStarfield(s32 yMin, s32 yMax) { // Stars
 
     cos = __cosf(gStarfieldRoll);
     sin = __sinf(gStarfieldRoll);
+
     for (i = 0; i < starCount; i++, yStar++, xStar++, color++) {
         bx = *xStar + xField;
         by = *yStar + yField;
+
+        // Wrapping logic for individual stars along X-axis
         if (bx >= starfieldWidth) {
             bx -= starfieldWidth;
         }
+        if (bx < 0.0f) {
+            bx += starfieldWidth;
+        }
+
+        // Wrapping logic for individual stars along Y-axis
         if (by >= starfieldHeight) {
             by -= starfieldHeight;
         }
-        
+        if (by < 0.0f) {
+            by += starfieldHeight;
+        }
+
+        // Center the positions
         bx -= starfieldWidth / 2.0f;
         by -= starfieldHeight / 2.0f;
 
@@ -431,7 +448,7 @@ RECOMP_PATCH void Background_DrawPartialStarfield(s32 yMin, s32 yMax) { // Stars
         vy = (-sin * bx) + (cos * by) + currentScreenHeight / 2.0f;
 
         // Check if the star is within the visible screen area
-        if ((vx >= 0) && (vx < currentScreenWidth) /* && (yMin < vy) && (vy < yMax)*/) {
+        if ((vx >= 0) && (vx < currentScreenWidth) && (yMin < vy) && (vy < yMax)) {
             // Tag the transform. Assuming TAG_STARFIELD is a defined base tag value
             // @recomp Tag the transform.
             u8 skipInterpolation = (fabsf(vx - gStarPrevX[i]) > starfieldWidth / 2.0f) ||
