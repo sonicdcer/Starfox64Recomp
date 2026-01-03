@@ -1180,4 +1180,61 @@ RECOMP_PATCH void Map_Path_Draw(s32 index) {
 }
 #endif
 
+RECOMP_PATCH void Map_Prologue_Draw(void) {
+    s32 i;
+    static f32 sPrologueTextFadeTexUpperYpos = 71.0f;
+    static f32 sPrologueTextFadeTexBottomYpos = 205.0f;
+    static u16* sPrologueTextures[] = {
+        aMapPrologue1Tex, aMapPrologue2Tex, aMapPrologue3Tex, aMapPrologue4Tex,
+        aMapPrologue5Tex, aMapPrologue6Tex, aMapPrologue7Tex,
+    };
+
+    Map_PrologueArwing_Draw();
+
+    RCP_SetupDL(&gMasterDisp, SETUPDL_81);
+    gDPSetPrimColor(gMasterDisp++, 0, 0, 180, 180, 180, 255);
+
+    // Prologue text
+    Message_DisplayScrollingText(&gMasterDisp, gMsg_ID_1, sPrologueTextXpos, sPrologueTextYpos, 218, 70,
+                                 Message_GetCharCount(gMsg_ID_1));
+
+    RCP_SetupDL(&gMasterDisp, SETUPDL_76);
+    gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, 255);
+
+    // Vertical Fade Margins for prologue text
+    Lib_TextureRect_IA8(&gMasterDisp, aMapPrologueTextFadeTex, 8, 16, 0.0f, sPrologueTextFadeTexUpperYpos, 40.0f,
+                        1.66f);
+    Lib_TextureRect_IA8_MirY(&gMasterDisp, aMapPrologueTextFadeTex, 8, 16, 0.0f, sPrologueTextFadeTexBottomYpos, 40.0f,
+                             1.68f);
+
+    // @recomp:
+    // Background_DrawPartialStarfield(71, 118);
+    // Background_DrawPartialStarfield(205, 239);
+    Background_DrawStarfield();
+
+    RCP_SetupDL(&gMasterDisp, SETUPDL_76);
+    gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, sPrologueCurrentTexAlpha);
+
+    // Current Prologue texture
+    for (i = 0; i < 13; i++) {
+        Lib_TextureRect_RGBA16(&gMasterDisp, sPrologueTextures[sPrologueTexIdx] + (96 * 4 * i), 96, 4, 109.0f,
+                               24.0f + (4.0f * i), 1.0f, 1.0f);
+    }
+
+    // Next Prologue texture
+    if ((sPrologueNextTexAlpha != 0) && ((sPrologueTexIdx + 1) < 7)) {
+        gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, sPrologueNextTexAlpha);
+
+        for (i = 0; i < 13; i++) {
+            Lib_TextureRect_RGBA16(&gMasterDisp, sPrologueTextures[sPrologueTexIdx + 1] + (96 * 4 * i), 96, 4, 109.0f,
+                                   24.0f + (i * 4.0f), 1.0f, 1.0f);
+        }
+
+        if (sPrologueNextTexAlpha == 255) {
+            sPrologueNextTexAlpha = 0;
+            sPrologueTexIdx++;
+        }
+    }
+}
+
 #endif

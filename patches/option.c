@@ -1,5 +1,7 @@
 #include "patches.h"
 
+#if 1
+
 extern f32 D_menu_801B91F4;
 extern f32 D_menu_801B91F8;
 extern s32 sVsMenuCursor;
@@ -257,3 +259,68 @@ RECOMP_PATCH void Option_Setup(void) {
     sVsSubMenuFromCancel = false;
     AUDIO_PLAY_BGM(NA_BGM_SELECT);
 }
+
+RECOMP_PATCH void Option_RankingMenu2_Draw(void) {
+    f32 var_fs0;
+    f32 var_fs1;
+    s32 colorGB;
+    s32 i;
+    static f32 D_menu_801AF0F4 = 130.0f;
+    static f32 D_menu_801AF0F8[] = { 48.0f, 175.0f };
+
+    var_fs0 = D_menu_801B91D4;
+    var_fs1 = D_menu_801B91D8;
+
+    for (i = 0; i < RANKING_MAX; i++) {
+        if ((var_fs0 > 69.0f) && (var_fs0 < 230.0f)) {
+            Option_OrdinalNumbers_Draw(i, 41, var_fs0);
+            Option_RankingName_Draw(i, 75, var_fs0 - 25.0f);
+            Option_RankingTotalHits_Draw(i, 130, (var_fs0 - 26.0f));
+            Map_RemainingLives_Draw(210, (var_fs0 - 24.0f), gSaveFile.save.data.rankingLives[i]);
+            Option_RankingTeamAlive_Draw(i, 258, var_fs0 - 25.0f);
+        }
+        Option_RankingRoute_Draw(i, var_fs0, var_fs1);
+        var_fs0 += D_menu_801AF0F4;
+        var_fs1 -= D_menu_801AF0F4;
+    }
+
+    Option_Menu_Push();
+    Option_80197914();
+
+    Matrix_Pop(&gGfxMatrix);
+
+    RCP_SetupDL(&gMasterDisp, SETUPDL_76);
+    gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, 255);
+
+    Lib_TextureRect_IA8(&gMasterDisp, D_OPT_800D170, 8, 16, 0.0f, D_menu_801AF0F8[0], 40.0f, 1.5f);
+    Lib_TextureRect_IA8_MirY(&gMasterDisp, D_OPT_800D170, 8, 16, 0.0f, D_menu_801AF0F8[1], 40.0f, 1.5f);
+
+    // @recomp:
+    // Background_DrawPartialStarfield(0, 70);
+    // Background_DrawPartialStarfield(170, 239);
+    Background_DrawStarfield();
+
+    RCP_SetupDL(&gMasterDisp, SETUPDL_83);
+
+    if (D_menu_801B91D4 >= 114.0f) {
+        gDPSetPrimColor(gMasterDisp++, 0, 0, 32, 32, 32, 255);
+    } else {
+        Option_Color_FlashRed(&D_menu_801B93F4);
+        colorGB = D_menu_801B93F4;
+        gDPSetPrimColor(gMasterDisp++, 0, 0, 255, colorGB, colorGB, 255);
+    }
+
+    Lib_TextureRect_IA8(&gMasterDisp, D_OPT_800D070, 16, 16, 150.0f, 44.0f, 1.0f, 1.0f);
+
+    if (D_menu_801B91D4 <= -1055.0f) {
+        gDPSetPrimColor(gMasterDisp++, 0, 0, 32, 32, 32, 255);
+    } else {
+        Option_Color_FlashRed(&D_menu_801B93F8);
+        colorGB = D_menu_801B93F8;
+        gDPSetPrimColor(gMasterDisp++, 0, 0, 255, colorGB, colorGB, 255);
+    }
+
+    Lib_TextureRect_IA8_MirY(&gMasterDisp, D_OPT_800D070, 16, 16, 150.0f, 200.0f, 1.0f, 1.0f);
+}
+
+#endif

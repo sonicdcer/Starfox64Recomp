@@ -1,3 +1,5 @@
+#if 1 // global
+
 #define RECOMP_PATCH __attribute__((section(".recomp_patch")))
 #define END_OF_ARRAY(array) (&(array)[0] + ARRAY_COUNT(array))
 #define SCREEN_MARGIN_RECOMP 0
@@ -290,3 +292,5 @@ RECOMP_PATCH void Game_InitStandbyDL(Gfx** dList) {
     gDPPipeSync((*dList)++);
     gDPSetColorDither((*dList)++, G_CD_MAGICSQ);
 }
+
+#endif
