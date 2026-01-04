@@ -23,14 +23,14 @@ RECOMP_PATCH void AudioHeap_DiscardSampleCaches(void) {
     Instrument* instrument;
     SampleCacheEntry* entry;
 
-    entry = gPersistentSampleCache.entries; // @recomp
-
     for (fontId = 0; fontId < numFonts; fontId++) {
         sampleBankId1 = gSoundFontList[fontId].sampleBankId1;
         sampleBankId2 = gSoundFontList[fontId].sampleBankId2;
-        if (((sampleBankId1 != SAMPLES_NONE_U) && (entry->sampleBankId == sampleBankId1)) ||
-            ((sampleBankId2 != SAMPLES_NONE) && (entry->sampleBankId == sampleBankId2)) ||
-            (entry->sampleBankId == SAMPLES_SFX)) {
+        // @recomp: avoid reading from garbage memory,
+        // F-Zero X newer version of this audio driver has this fix:
+        if (((sampleBankId1 != SAMPLES_NONE_U) /* && (entry->sampleBankId == sampleBankId1) */) ||
+            ((sampleBankId2 != SAMPLES_NONE) /* && (entry->sampleBankId == sampleBankId2)*/ ) /* ||
+            (entry->sampleBankId == SAMPLES_SFX) */) {
             if ((AudioHeap_SearchCaches(FONT_TABLE, CACHE_PERMANENT, fontId) != NULL) &&
                 ((gFontLoadStatus[fontId] > 1) != 0)) {
                 for (i = 0; i < gPersistentSampleCache.numEntries; i++) {
@@ -59,6 +59,7 @@ RECOMP_PATCH void AudioHeap_DiscardSampleCaches(void) {
     }
 }
 
+// @recomp: replace sNewAudioTasks[1] with sNewAudioTasks_recomp[2]
 RECOMP_PATCH void Main_Initialize(void) {
     u8 i;
 
@@ -84,6 +85,7 @@ RECOMP_PATCH void Main_Initialize(void) {
     }
 }
 
+// @recomp: replace sNewAudioTasks[1] with sNewAudioTasks_recomp[2]
 RECOMP_PATCH void Main_GetNewTasks(void) {
     u8 i;
     SPTask** audioTask;
