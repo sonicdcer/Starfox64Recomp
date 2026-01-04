@@ -35,6 +35,13 @@ RECOMP_PATCH void AudioHeap_DiscardSampleCaches(void) {
                 ((gFontLoadStatus[fontId] > 1) != 0)) {
                 for (i = 0; i < gPersistentSampleCache.numEntries; i++) {
                     entry = &gPersistentSampleCache.entries[i];
+                    
+                    // @recomp:
+                    if ((sampleBankId1 != entry->sampleBankId) && (sampleBankId2 != entry->sampleBankId) &&
+                        (entry->sampleBankId != SAMPLES_SFX)) {
+                        break;
+                    }
+
                     for (instId = 0; instId < gSoundFontList[fontId].numInstruments; instId++) {
                         instrument = Audio_GetInstrument(fontId, instId);
                         if (instrument != NULL) {
