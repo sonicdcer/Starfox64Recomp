@@ -19,28 +19,6 @@
 #include "misc_funcs.h"
 #include "patches.h"
 
-typedef struct AssetInfo {
-    /* 0x00 */ void* unk_00;
-    /* 0x04 */ void* unk_04;
-    /* 0x08 */ s16 unk_08;
-    /* 0x0C */ u32 unk_0C;
-    /* 0x10 */ u32 unk_10;
-    /* 0x14 */ f32 unk_14;
-    /* 0x18 */ Vec3f unk_18;
-    /* 0x24 */ Vec3f unk_24;
-    /* 0x30 */ Vec3f unk_30;
-    /* 0x3C */ Vec3f unk_3C;
-    /* 0x48 */ Vec3f unk_48;
-    /* 0x54 */ Vec3f unk_54;
-    /* 0x60 */ Color_RGBA32 fog;
-    /* 0x64 */ s16 fogNear;
-    /* 0x66 */ s16 fogFar;
-    /* 0x68 */ Color_RGBA32 env;
-    /* 0x6C */ Color_RGBA32 prim;
-    /* 0x70 */ u8 unk_70;
-    /* 0x71 */ u8 unk_71;
-} AssetInfo; // size = 0x72
-
 // @recomp make GfxPool larger
 typedef struct {
     /* 0x00000 */ SPTask task;

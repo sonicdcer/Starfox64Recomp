@@ -1,27 +1,5 @@
 #include "patches.h"
 
-typedef struct AssetInfo {
-    /* 0x00 */ void* unk_00;
-    /* 0x04 */ void* unk_04;
-    /* 0x08 */ s16 unk_08;
-    /* 0x0C */ u32 unk_0C;
-    /* 0x10 */ u32 unk_10;
-    /* 0x14 */ f32 unk_14;
-    /* 0x18 */ Vec3f unk_18;
-    /* 0x24 */ Vec3f unk_24;
-    /* 0x30 */ Vec3f unk_30;
-    /* 0x3C */ Vec3f unk_3C;
-    /* 0x48 */ Vec3f unk_48;
-    /* 0x54 */ Vec3f unk_54;
-    /* 0x60 */ Color_RGBA32 fog;
-    /* 0x64 */ s16 fogNear;
-    /* 0x66 */ s16 fogFar;
-    /* 0x68 */ Color_RGBA32 env;
-    /* 0x6C */ Color_RGBA32 prim;
-    /* 0x70 */ u8 unk_70;
-    /* 0x71 */ u8 unk_71;
-} AssetInfo; // size = 0x72
-
 typedef struct {
     /* 0x00 */ Animation* anim;
     /* 0x04 */ Limb** skeleton;
@@ -326,7 +304,7 @@ RECOMP_PATCH void Ending_Draw(void) {
     }
 #endif
 
-#if DEBUG_ENDING == 1
+#if 0
     // @recomp: Ending timer.
     if ((D_ending_80192E70 >= 0) && (D_ending_80192E70 < 10000)) {
         RCP_SetupDL(&gMasterDisp, SETUPDL_83);
@@ -337,4 +315,15 @@ RECOMP_PATCH void Ending_Draw(void) {
 #endif
 
     Matrix_Pop(&gGfxMatrix);
+        // Recording debug
+#if 1
+    RCP_SetupDL(&gMasterDisp, SETUPDL_83);
+    gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 0, 255);
+    Graphics_DisplaySmallText(10 + 210, 180, 1.0f, 1.0f, "VIS:");
+    Graphics_DisplaySmallNumber(60 + 210, 180, (int) gVIsPerFrame);
+    Graphics_DisplaySmallText(10 + 210, 190, 1.0f, 1.0f, "GMFMS:");
+    Graphics_DisplaySmallNumber(60 + 210, 190, (int) gGameFrameCount);
+    Graphics_DisplaySmallText(10 + 210, 200, 1.0f, 1.0f, "ENDSTATE:");
+    Graphics_DisplaySmallNumber(60 + 220, 210, (int) D_ending_80196D00);
+#endif
 }

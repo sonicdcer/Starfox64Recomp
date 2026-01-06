@@ -18,6 +18,11 @@
 void Cutscene_WarpZoneComplete(Player* player);
 void Cutscene_FortunaComplete(Player* player);
 void Cutscene_CoComplete2(Player* player);
+void Ending_8018A8FC(void);
+void Ending_8018B3D8(void);
+void Ending_8018ABE8(void);
+void Ending_8018A570(void);
+bool Ending_8018BCB0(void);
 
 int gWarpzoneCsFrameCount = 0;
 
@@ -189,6 +194,46 @@ Record gWarpzoneCsRecord[19] = {
     { 3, 216 },
     { 2, 230 },
 };
+
+Record gEndingCsRecord[] = {
+    { 2,    0 },
+    { 5,    1 },
+    { 2,    2 },
+    { 3,  277 },
+    { 2,  278 },
+    { 3,  340 },
+    { 2,  397 },
+    { 3,  537 },
+    { 2,  538 },
+    { 3,  548 },
+    { 2,  549 },
+    { 3,  568 },
+    { 2,  569 },
+    { 3,  620 },
+    { 2,  623 },
+    { 3,  803 },
+    { 2,  806 },
+    { 3,  814 },
+    { 2,  823 },
+    { 3, 1282 },
+    { 2, 1284 },
+    { 5, 3703 },
+    { 2, 3704 },
+    { 4, 3904 },
+    { 2, 3905 },
+    { 3, 4782 },
+    { 2, 4783 },
+    { 3, 4785 },
+    { 2, 4820 },
+    { 3, 4986 },
+    { 2, 6779 },
+    { 5, 6780 },
+    { 2, 6781 },
+    { 3, 6785 },
+    { 4, 6786 },
+    { 3, 6793 },
+    { 2, 6799 },
+};
 // clang-format on
 
 void UpdateVisPerFrameFromRecording(Record* record, s32 maxFrames) {
@@ -214,6 +259,20 @@ void UpdateVisPerFrameFromRecording_Warpzone(Record* record, s32 maxFrames) {
 
     for (i = 0; i < maxFrames; i++) {
         if (gWarpzoneCsFrameCount == record[i].frame) {
+            gVIsPerFrame = record[i].vis;
+        }
+    }
+}
+
+void UpdateVisPerFrameFromRecording_Ending(Record* record, s32 maxFrames) {
+    int i;
+
+    if (gGameFrameCount > record[maxFrames - 1].frame) {
+        return;
+    }
+
+    for (i = 0; i < maxFrames; i++) {
+        if (gGameFrameCount == record[i].frame) {
             gVIsPerFrame = record[i].vis;
         }
     }
@@ -326,4 +385,62 @@ RECOMP_PATCH void Cutscene_LevelComplete(Player* player) {
             }
             break;
     }
+}
+
+RECOMP_PATCH void Ending_Main(void) {
+    gCsFrameCount++;
+    gGameFrameCount++;
+
+    switch (D_ending_80196D00) {
+        case 0:
+            gRadioState = 0;
+            gGameFrameCount = 0;
+            gSceneSetup = 0;
+            gCsCamEyeX = gCsCamEyeY = gCsCamEyeZ = 0.0f;
+            gCsCamAtX = gCsCamAtY = 0.0f;
+            gCsCamAtZ = -100.0f;
+            D_ending_80196D00 = 1;
+            break;
+
+        case 1:
+            if (D_ending_80192E70 < 2800) {
+                break;
+            }
+        case 2:
+            D_ending_80196D00 = 3;
+            gCsFrameCount = 0;
+
+        case 3:
+            if (Ending_8018BCB0() == 0) {
+                break;
+            }
+        case 4:
+            gSceneSetup = 2;
+            D_ending_80196D00 = 5;
+            break;
+
+        case 5:
+            D_ending_80196F8C = 0;
+            D_ending_80196D00 = 6;
+
+        case 6:
+            Ending_8018A570();
+            break;
+
+        case 7:
+            break;
+    }
+    Ending_8018A8FC();
+    Ending_8018B3D8();
+    Ending_8018ABE8();
+
+    // @recomp: Update VisPerFrame with N64 Recording
+    UpdateVisPerFrameFromRecording_Ending(gEndingCsRecord, ARRAY_COUNT(gEndingCsRecord));
+}
+
+RECOMP_PATCH void Ending_8018D250(u32 arg0, AssetInfo* asset) {
+    gSceneSetup = asset->unk_08;
+    // @recomp: avoid updating gVIsPerFrame since we're using a recording
+    //  gVIsPerFrame = asset->unk_70;
+    gStarCount = asset->unk_14;
 }
