@@ -77,11 +77,11 @@ RECOMP_PATCH void Background_DrawBackdrop(void) {
                         if (gCamera1Skipped) {
                             // Skip
                             // @recomp Tag the transform
-                            gEXMatrixGroupDecomposedSkipAll(gMasterDisp++, TAG_BACKGROUND + i, G_EX_PUSH,
+                            gEXMatrixGroupDecomposedSkipAll(gMasterDisp++, TAG_BACKGROUND, G_EX_PUSH,
                                                             G_MTX_MODELVIEW, G_EX_EDIT_NONE);
                         } else {
                             // @recomp Tag the transform
-                            gEXMatrixGroupDecomposed(gMasterDisp++, TAG_BACKGROUND + i, G_EX_PUSH, G_MTX_MODELVIEW,
+                            gEXMatrixGroupDecomposed(gMasterDisp++, TAG_BACKGROUND, G_EX_PUSH, G_MTX_MODELVIEW,
                                                      G_EX_COMPONENT_AUTO, G_EX_COMPONENT_AUTO, G_EX_COMPONENT_AUTO,
                                                      G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE,
                                                      G_EX_COMPONENT_SKIP, G_EX_COMPONENT_INTERPOLATE, G_EX_ORDER_AUTO,
@@ -170,11 +170,11 @@ RECOMP_PATCH void Background_DrawBackdrop(void) {
                             if (gCamera1Skipped) {
                                 // Skip
                                 // @recomp Tag the transform
-                                gEXMatrixGroupDecomposedSkipAll(gMasterDisp++, TAG_BACKGROUND + i, G_EX_PUSH,
+                                gEXMatrixGroupDecomposedSkipAll(gMasterDisp++, TAG_BACKGROUND, G_EX_PUSH,
                                                                 G_MTX_MODELVIEW, G_EX_EDIT_NONE);
                             } else {
                                 // @recomp Tag the transform
-                                gEXMatrixGroupDecomposed(gMasterDisp++, TAG_BACKGROUND + i, G_EX_PUSH, G_MTX_MODELVIEW,
+                                gEXMatrixGroupDecomposed(gMasterDisp++, TAG_BACKGROUND, G_EX_PUSH, G_MTX_MODELVIEW,
                                                          G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE,
                                                          G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE,
                                                          G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_SKIP,
@@ -185,12 +185,12 @@ RECOMP_PATCH void Background_DrawBackdrop(void) {
                             if (gCamera1Skipped) {
                                 // Skip
                                 // @recomp Tag the transform
-                                gEXMatrixGroupDecomposedSkipAll(gMasterDisp++, TAG_BACKGROUND + i, G_EX_PUSH,
+                                gEXMatrixGroupDecomposedSkipAll(gMasterDisp++, TAG_BACKGROUND, G_EX_PUSH,
                                                                 G_MTX_MODELVIEW, G_EX_EDIT_NONE);
                             } else {
                                 // @recomp Tag the transform
                                 gEXMatrixGroupDecomposed(
-                                    gMasterDisp++, TAG_BACKGROUND + i, G_EX_PUSH, G_MTX_MODELVIEW, G_EX_COMPONENT_AUTO,
+                                    gMasterDisp++, TAG_BACKGROUND, G_EX_PUSH, G_MTX_MODELVIEW, G_EX_COMPONENT_AUTO,
                                     G_EX_COMPONENT_AUTO, G_EX_COMPONENT_AUTO, G_EX_COMPONENT_INTERPOLATE,
                                     G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_INTERPOLATE,
                                     G_EX_ORDER_AUTO, G_EX_EDIT_ALLOW, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_SKIP);
@@ -336,12 +336,12 @@ RECOMP_PATCH void Background_DrawBackdrop(void) {
                             if (gCamera1Skipped) {
                                 // Skip
                                 // @recomp Tag the transform
-                                gEXMatrixGroupDecomposedSkipAll(gMasterDisp++, TAG_BACKGROUND + i, G_EX_PUSH,
+                                gEXMatrixGroupDecomposedSkipAll(gMasterDisp++, TAG_BACKGROUND, G_EX_PUSH,
                                                                 G_MTX_MODELVIEW, G_EX_EDIT_NONE);
                             } else {
                                 // @recomp Tag the transform.
                                 gEXMatrixGroupDecomposed(
-                                    gMasterDisp++, TAG_BACKGROUND + i, G_EX_PUSH, G_MTX_MODELVIEW, G_EX_COMPONENT_AUTO,
+                                    gMasterDisp++, TAG_BACKGROUND, G_EX_PUSH, G_MTX_MODELVIEW, G_EX_COMPONENT_AUTO,
                                     G_EX_COMPONENT_AUTO, G_EX_COMPONENT_AUTO, G_EX_COMPONENT_INTERPOLATE,
                                     G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_INTERPOLATE,
                                     G_EX_ORDER_AUTO, G_EX_EDIT_ALLOW, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_SKIP);
@@ -413,12 +413,12 @@ RECOMP_PATCH void Background_DrawBackdrop(void) {
                             if (gCamera1Skipped) {
                                 // Skip
                                 // @recomp Tag the transform
-                                gEXMatrixGroupDecomposedSkipAll(gMasterDisp++, TAG_BACKGROUND + i, G_EX_PUSH,
+                                gEXMatrixGroupDecomposedSkipAll(gMasterDisp++, TAG_BACKGROUND, G_EX_PUSH,
                                                                 G_MTX_MODELVIEW, G_EX_EDIT_NONE);
                             } else {
                                 // G_EX_COMPONENT_AUTO makes the warping less apparent.
                                 gEXMatrixGroupDecomposed(
-                                    gMasterDisp++, TAG_BACKGROUND + i, G_EX_PUSH, G_MTX_MODELVIEW, G_EX_COMPONENT_AUTO,
+                                    gMasterDisp++, TAG_BACKGROUND, G_EX_PUSH, G_MTX_MODELVIEW, G_EX_COMPONENT_AUTO,
                                     G_EX_COMPONENT_AUTO, G_EX_COMPONENT_AUTO, G_EX_COMPONENT_INTERPOLATE,
                                     G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_INTERPOLATE,
                                     G_EX_ORDER_AUTO, G_EX_EDIT_ALLOW, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_SKIP);
@@ -427,10 +427,10 @@ RECOMP_PATCH void Background_DrawBackdrop(void) {
                             if (gCamera1Skipped) {
                                 // Skip
                                 // @recomp Tag the transform
-                                gEXMatrixGroupDecomposedSkipAll(gMasterDisp++, TAG_BACKGROUND + i, G_EX_PUSH,
+                                gEXMatrixGroupDecomposedSkipAll(gMasterDisp++, TAG_BACKGROUND, G_EX_PUSH,
                                                                 G_MTX_MODELVIEW, G_EX_EDIT_NONE);
                             } else {
-                                gEXMatrixGroupDecomposed(gMasterDisp++, TAG_BACKGROUND + i, G_EX_PUSH, G_MTX_MODELVIEW,
+                                gEXMatrixGroupDecomposed(gMasterDisp++, TAG_BACKGROUND, G_EX_PUSH, G_MTX_MODELVIEW,
                                                          G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE,
                                                          G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE,
                                                          G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_SKIP,
@@ -450,7 +450,7 @@ RECOMP_PATCH void Background_DrawBackdrop(void) {
                         }
 
                         // Move the matrix to the right by 7280.0f each time to draw the next texture
-                        Matrix_Translate(gGfxMatrix, 7280.0f, 0.0f, 0.0f, MTXF_APPLY);
+                        Matrix_Translate(gGfxMatrix, 7279.0f, 0.0f, 0.0f, MTXF_APPLY);
                         Matrix_SetGfxMtx(&gMasterDisp);
 
                         // @recomp Pop the transform id.
