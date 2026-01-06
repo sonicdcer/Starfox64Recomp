@@ -315,8 +315,9 @@ RECOMP_PATCH void Ending_Draw(void) {
 #endif
 
     Matrix_Pop(&gGfxMatrix);
-        // Recording debug
-#if 1
+
+    // Recording debug
+#if 0
     RCP_SetupDL(&gMasterDisp, SETUPDL_83);
     gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 0, 255);
     Graphics_DisplaySmallText(10 + 210, 180, 1.0f, 1.0f, "VIS:");
