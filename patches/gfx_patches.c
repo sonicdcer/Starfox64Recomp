@@ -92,6 +92,7 @@ RECOMP_PATCH void Graphics_ThreadEntry(void* arg0) {
         (gUnkDisp1 > END_OF_ARRAY(gExGfxPool->unkDL1)) || (gMasterDisp > END_OF_ARRAY(gExGfxPool->masterDL)) ||
         (gUnkDisp2 > END_OF_ARRAY(gExGfxPool->unkDL2)) || (gLight > END_OF_ARRAY(gExGfxPool->lights))) {
         // CRASH
+        recomp_printf("GfxPool out of bounds!\n");
         *(volatile int*) 0 = 0;
     }
 
@@ -128,12 +129,13 @@ RECOMP_PATCH void Graphics_ThreadEntry(void* arg0) {
 #if 1
             // Noise
             if (recomp_get_film_grain_enabled()) {
-                // gDPSetAlphaDither(gMasterDisp++, G_AD_NOISE);
-                gDPSetColorDither(gMasterDisp++, G_CD_NOISE);
-                // Fill the screen with a White rectangle
-                gDPSetRenderMode(gMasterDisp++, G_RM_XLU_SURF, G_RM_XLU_SURF2);
-                gDPSetCombineMode(gMasterDisp++, G_CC_PRIMITIVE, G_CC_PRIMITIVE);
-                gDPSetPrimColor(gMasterDisp++, 0, 0, 175, 175, 175, 2); // White with 100 alpha (semi-transparent)
+                gDPPipeSync((gMasterDisp)++);
+                gDPSetPrimColor((gMasterDisp)++, 0x00, 0x00, 175, 175, 175, 2);
+                gDPSetColorDither((gMasterDisp)++, G_CD_NOISE);
+                gDPSetAlphaDither((gMasterDisp)++, G_AD_NOISE);
+                gDPSetCycleType((gMasterDisp)++, G_CYC_1CYCLE);
+                gDPSetCombineMode((gMasterDisp)++, G_CC_PRIMITIVE, G_CC_PRIMITIVE);
+                gDPSetRenderMode((gMasterDisp)++, G_RM_CLD_SURF, G_RM_CLD_SURF2);
                 gDPFillRectangle(gMasterDisp++, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
             }
 #endif
