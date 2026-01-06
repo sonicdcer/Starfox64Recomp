@@ -354,7 +354,7 @@ RECOMP_PATCH void Background_DrawBackdrop(void) {
                             }
 
                             // Translate to the next position (move right by 7280.0f each time)
-                            Matrix_Translate(gGfxMatrix, 7280.0f, 0.0f, 0.0f, MTXF_APPLY);
+                            Matrix_Translate(gGfxMatrix, 7279.0f, 0.0f, 0.0f, MTXF_APPLY);
                             Matrix_SetGfxMtx(&gMasterDisp);
 
                             // @recomp Pop the transform id.
