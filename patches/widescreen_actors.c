@@ -265,23 +265,23 @@ RECOMP_PATCH void Scenery360_Draw(Scenery360* this) {
 
     Matrix_MultVec3f(gGfxMatrix, &src, &dest);
 
-    // if (gCurrentLevel == LEVEL_SECTOR_Z) {
-    //     behindZdist = 6000.0f;
-    //     frontZdist = -20000.0f * 2;
-    //     xyOffsetBounds = 6000.0f * 2;
-    //     xyObjDistBoundMod = 0.9f;
-    //     goto check;
-    // }
+    if (gCurrentLevel == LEVEL_SECTOR_Z) {
+        behindZdist = 6000.0f;
+        frontZdist = -20000.0f * 2;
+        xyOffsetBounds = 6000.0f * 2;
+        xyObjDistBoundMod = 0.9f;
+        goto check;
+    }
 
-    //     if ((gCurrentLevel != LEVEL_SECTOR_Y) && (gCurrentLevel != LEVEL_VENOM_ANDROSS)) {
-    //         goto render;
-    //     }
-    //
-    // check:
+    if ((gCurrentLevel != LEVEL_SECTOR_Y) && (gCurrentLevel != LEVEL_VENOM_ANDROSS)) {
+        goto render;
+    }
+
+check:
     if ((dest.z < behindZdist) && (frontZdist < dest.z)) {
         if (fabsf(dest.y) < (fabsf(dest.z * xyObjDistBoundMod) + xyOffsetBounds)) {
             if (fabsf(dest.x) < (fabsf(dest.z * xyObjDistBoundMod + 1.0f) + xyOffsetBounds)) {
-                // render:
+            render:
                 Display_SetSecondLight(&this->obj.pos);
 
                 if (this->obj.id == OBJ_SCENERY_AND_PASSAGE) {
