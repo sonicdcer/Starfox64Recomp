@@ -5,7 +5,7 @@
 
 For a more detailed history, be sure to check out [fox_lore.md](DOCS/fox_lore.md)
 
-### [Check out the latest release here](https://github.com/sonicdcer/Starfox64Recomp/releases/latest).
+### [Download the latest release here](https://github.com/sonicdcer/Starfox64Recomp/releases/latest).
 
 Join the [N64: Recompiled Community Discord](https://discord.gg/AWZThJ4dPf) to discuss this and other N64: Recompiled projects!
 
