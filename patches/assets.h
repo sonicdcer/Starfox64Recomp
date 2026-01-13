@@ -1617,6 +1617,7 @@ extern u8 D_OPT_80079F0[];
 extern u16 aMapWhiteSquareTex[];
 extern Gfx aCoWaterfallDL[];
 extern Gfx aMeteoWarpDL[];
+extern Gfx aArrowDL[];
 extern u8 D_800C9F00;
 extern u8 D_800C9F04;
 extern u16 aLandmasterModelTex6[];

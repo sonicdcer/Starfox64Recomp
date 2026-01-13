@@ -861,17 +861,13 @@ RECOMP_PATCH void HUD_BombCounter_Draw(f32 x, f32 y) {
 }
 #endif
 
-#if 1 // HUD_EdgeArrows_Draw *perspective
-
-void Matrix_RotateZ(Matrix* mtx, f32 angle, u8 mode);
-
-extern Gfx aArrowDL[];
-
+#if 1
 RECOMP_PATCH void HUD_EdgeArrows_Draw(s32 idx, bool arg1) {
     static const f32 D_800D1EF8[] = { 0.0f, 0.0f, -9.0f, 9.0f, 10.0f, 10.0f, 10.0f, 10.0f, 0.0f, 0.0f, -8.0f, 8.0f };
     static const f32 D_800D1F28[] = { -7.0f, 7.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 8.0f, -8.0f, 0.0f, 0.0f };
     static const f32 D_800D1F58[] = { -22.0f, -22.0f, -22.0f, -22.0f, -28.0f, -28.0f,
                                       -28.0f, -28.0f, -28.0f, -28.0f, -28.0f, -28.0f };
+    static const f32 D_800D1F88[] = { 0.0f, 0.0f, 0.0f, 0.0f, 495.0f, 405.0f, 585.0f, 675.0f, 0.0f, 0.0f, 0.0f, 0.0f };
     static const f32 D_800D1FB8[] = { 180.0f, 0.0f,   270.0f, 90.0f,  270.0f, 270.0f,
                                       270.0f, 270.0f, 0.0f,   180.0f, 90.0f,  270.0f };
     static const f32 D_800D1FE8[] = { 0.0f, 0.0f, 2.0f, -2.0f, -2.0f, -2.0f, -2.0f, -2.0f, 0.0f, 0.0f, 2.0f, -2.0f };
@@ -883,10 +879,8 @@ RECOMP_PATCH void HUD_EdgeArrows_Draw(s32 idx, bool arg1) {
         Matrix_RotateZ(gGfxMatrix, M_DTOR * gPlayer[0].camRoll, MTXF_APPLY);
     }
 
-    if (arg1 != 0) {
-        Matrix_Translate(gGfxMatrix, D_800D1EF8[idx] + D_800D1FE8[idx], D_800D1F28[idx], D_800D1F58[idx], MTXF_APPLY);
-    } else {
-        Matrix_Translate(gGfxMatrix, D_800D1EF8[idx], D_800D1F28[idx], D_800D1F58[idx], MTXF_APPLY);
+    if (D_800D1F88[idx]) {
+        Matrix_RotateZ(gGfxMatrix, M_DTOR * D_800D1F88[idx], MTXF_APPLY);
     }
 
     // Simplified viewport alignment based on X position
@@ -901,6 +895,13 @@ RECOMP_PATCH void HUD_EdgeArrows_Draw(s32 idx, bool arg1) {
     }
     // Otherwise, no special alignment (centered)
 
+    if (arg1) {
+        Matrix_Translate(gGfxMatrix, D_800D1EF8[idx] + D_800D1FE8[idx], D_800D1F28[idx] + D_800D2018[idx],
+                         D_800D1F58[idx], MTXF_APPLY);
+    } else {
+        Matrix_Translate(gGfxMatrix, D_800D1EF8[idx], D_800D1F28[idx], D_800D1F58[idx], MTXF_APPLY);
+    }
+
     gSPViewport(gMasterDisp++, gViewport);
 
     Matrix_RotateZ(gGfxMatrix, M_DTOR * D_800D1FB8[idx], MTXF_APPLY);
@@ -913,7 +914,6 @@ RECOMP_PATCH void HUD_EdgeArrows_Draw(s32 idx, bool arg1) {
 
     Matrix_Pop(&gGfxMatrix);
 }
-
 #endif
 
 #if 1 // Radar
