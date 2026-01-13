@@ -36,7 +36,7 @@ choco install make
 ```
 
 ## 3. Decompressing the target ROM
-You will need to decompress the NTSC-U N64 Majora's Mask ROM (sha1: d6133ace5afaa0882cf214cf88daba39e266c078) before running the recompiler.
+You will need to decompress the 1.1 US N64 Starfox 64 ROM (md5: 741a94eee093c4c8684e66b89f8685e8) before running the recompiler.
 
 There are a few tools that can do it:
 * This python script from the Starfox 64 decompilation project: https://github.com/sonicdcer/sf64/blob/master/tools/comptool.py. Setting up the Starfox 64 Decompilation project and running this command is recommended:
