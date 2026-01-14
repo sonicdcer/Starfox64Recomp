@@ -2,7 +2,8 @@
 
 #if 1
 
-typedef struct Scenery2 {
+// Custom Scenery struct uses 32 bits of compiler-inserted padding to hold the skipRot status.
+typedef struct SceneryRecomp {
     /* 0x00 */ Object obj;
     /* 0x1C */ ObjectInfo info;
     /* 0x40 */ s32 index;
@@ -14,12 +15,12 @@ typedef struct Scenery2 {
     /* 0x58 */ Vec3f effectVel;
     /* 0x64 */ Vec3f vel;
     /* 0x70 */ f32 sfxSource[3];
-    /* 0x7C */ bool skipRot;
-} Scenery2; // size = 0x80
+    /* 0x7C */ bool skipRot; // Should rotation be skipped for this Scenery actor.
+} SceneryRecomp;             // size = 0x80
 
 void Object_SetMatrix(Object* obj, s32 drawType);
 void Object_SetCullDirection(s32);
-void Recomp_CoBuilding_Draw(Scenery2* this);
+void Recomp_CoBuilding_Draw(SceneryRecomp* this);
 bool Macbeth_801A0DD8(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx);
 void Macbeth_801A0E2C(s32 limbIndex, Vec3f* rot, void* thisx);
 
@@ -65,7 +66,7 @@ RECOMP_PATCH void Scenery_Draw(Scenery* this, s32 cullDir) {
                 case OBJ_SCENERY_CO_BUILDING_6:
                 case OBJ_SCENERY_CO_BUILDING_7:
                 case OBJ_SCENERY_CO_BUILDING_8:
-                    Recomp_CoBuilding_Draw((Scenery2*) this);
+                    Recomp_CoBuilding_Draw((SceneryRecomp*) this);
                     return;
 
                 default:
@@ -139,7 +140,7 @@ RECOMP_PATCH void Corneria_CoBuildingOnFire_Draw(CoBuildingOnFire* this) {
 #endif
 
 // @recomp: Replacement draw function for OBJ_SCENERY_CO_BUILDING_8
-void Recomp_CoBuilding_Draw(Scenery2* this) {
+void Recomp_CoBuilding_Draw(SceneryRecomp* this) {
     f32 prevRot;
 
     if (this->skipRot) {
