@@ -1648,4 +1648,21 @@ extern s32 sPrologueTexIdx;
 extern f32 sPrologueCurrentTexAlpha;
 extern u8 aMapPrologueTextFadeTex[];
 extern f32 sPrologueNextTexAlpha;
+extern f32 aSxSpyborgHitbox[];
+extern f32 D_SX_603265C[];
+extern f32 D_SX_6032768[];
+extern Animation D_SX_600F890; // frames: 180, limbs: 45
+extern Animation D_SX_601AA28;
+extern Animation D_SX_60158C4;
+extern Animation D_SX_6009FF8;
+extern Animation D_SX_60206DC;
+extern Animation D_SX_6016E28;
+extern Animation D_SX_60123BC;
+extern Animation D_SX_6013798;
+extern Animation D_SX_600A2D4;
+extern Animation D_SX_601C690;
+extern Limb* aSxSpyborgSkel[45];
+extern f32 D_i2_80195D88[3];
+extern f32 D_i2_80195D98[3];
+extern s32 D_i2_80195640;
 #endif

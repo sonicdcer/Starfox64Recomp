@@ -10,6 +10,11 @@ void Solar_801A0DF8(f32 xPos, f32 zPos, f32 yRot, s32 index, f32 yPos);
 void Solar_801A7750(void);
 void Audio_FadeOutAll(u8 fadeoutTime);
 
+void SectorX_8018FA04(f32 x, f32 y, f32 z);
+void SectorX_8018F030(void);
+bool SectorX_SxSpyborg_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx);
+void SectorX_SxSpyborg_PostLimbDraw(s32 limbIndex, Vec3f* rot, void* thisx);
+
 void* memcpy2(void* dest, const void* src, size_t n) {
     unsigned char* su1 = (unsigned char*) dest;
     const unsigned char* su2 = (const unsigned char*) src;
@@ -675,7 +680,7 @@ RECOMP_PATCH void ActorTeamArwing_Draw(ActorTeamArwing* this) {
 
     Matrix_MultVec3f(gGfxMatrix, &src, &dest);
 
-    if (( (/*(fabsf(dest.z) < 3000.0f) && (fabsf(dest.x) < 3000.0f) && */!gBossActive)  || 
+    if (((/*(fabsf(dest.z) < 3000.0f) && (fabsf(dest.x) < 3000.0f) && */ !gBossActive) ||
          (gPlayer[0].state == PLAYERSTATE_STANDBY) || (gCurrentLevel == LEVEL_VENOM_ANDROSS) ||
          (gCurrentLevel == LEVEL_VENOM_2) || (gPlayer[0].state == PLAYERSTATE_LEVEL_COMPLETE)) &&
         (gCurrentLevel != LEVEL_MACBETH) && (gCurrentLevel != LEVEL_TITANIA)) {
@@ -784,5 +789,853 @@ RECOMP_PATCH void Corneria_CsLevelComplete1_TeamSetup(ActorCutscene* this, s32 i
     this->iwork[11] = 1;
     AUDIO_PLAY_SFX(NA_SE_ARWING_ENGINE_FG, this->sfxSource, 4);
     this->iwork[14] = 3;
+}
+#endif
+
+#if 1 // Solve SxSpyborg interpolation issues while pausing
+RECOMP_PATCH void SectorX_SxSpyborg_Update(SxSpyborg* this) {
+    u8 attack;
+    s32 i;
+    Vec3f frameTable[50];
+    Vec3f sfxPos;
+    f32 sp70;
+    f32 sp6C;
+    f32 sp68;
+    f32 sp64;
+    f32 sp60;
+    s32 frameData;
+
+    gBossFrameCount++;
+    gLight2colorStep = 5;
+    attack = false;
+
+    if (gBossFrameCount < 150) {
+        gLight2RTarget = 20;
+        gLight2GTarget = 20;
+        gLight2BTarget = 20;
+    }
+
+    PRINTF("たかおちゃん よう見ときや！\n");                      // Takao-chan, look at it!
+    PRINTF("ボス面累計時間 : <%d>フレーム\n\n", gBossFrameCount); // Boss stage total time: <%d> frames.
+
+    switch (gBossFrameCount) {
+        case 175:
+            Radio_PlayMessage(gMsg_ID_5473, RCID_FOX);
+            break;
+
+        case 300:
+            Radio_PlayMessage(gMsg_ID_5492, RCID_BOSS_SECTORX);
+            break;
+
+        case 400:
+            Radio_PlayMessage(gMsg_ID_2225, RCID_SLIPPY);
+            break;
+
+        case 556:
+            gShowBossHealth = true;
+            break;
+
+        case 540:
+            Radio_PlayMessage(gMsg_ID_5493, RCID_BOSS_SECTORX);
+            break;
+    }
+
+    if (gBossFrameCount > 556) {
+        // approximately 700 / 256
+        gBossHealthBar = (this->swork[3] + this->health) / 2.73f;
+    }
+
+    sp68 = gPlayer[0].pos.x - this->obj.pos.x;
+    sp64 = gPlayer[0].trueZpos - (this->obj.pos.z + (-237.0f));
+
+    if (this->swork[7] != 0) {
+        sp70 = Math_RadToDeg(Math_Atan2F(sp68, sp64));
+        sp6C = Math_RadToDeg(-Math_Atan2F(gPlayer[0].pos.y - (this->obj.pos.y + 334.0f), sqrtf(SQ(sp68) + SQ(sp64))));
+        Math_SmoothStepToAngle(&this->fwork[4], sp70, 0.1f, 5.0f, 0.00001f);
+        Math_SmoothStepToAngle(&this->fwork[6], sp6C, 0.1f, 5.0f, 0.00001f);
+    } else {
+        Math_SmoothStepToF(&this->fwork[4], 182.0f, 0.1f, 2.0f, 0.00001f);
+        Math_SmoothStepToAngle(&this->fwork[6], 0.0f, 0.1f, 1.0f, 0.00001f);
+    }
+
+    this->fwork[5] = SIN_DEG(this->timer_054 * 50.0f) * this->timer_054;
+    this->fwork[7] = SIN_DEG(this->timer_054 * 30.0f) * this->timer_054 * 0.5f;
+
+    Math_SmoothStepToF(&this->obj.pos.z, gPlayer[0].pos.z + this->fwork[1], 0.1f, this->fwork[42], 0);
+    Math_SmoothStepToF(&this->obj.pos.y, this->fwork[2], 0.05f, this->fwork[43], 0);
+    Math_SmoothStepToF(&this->obj.pos.x, this->fwork[3], 0.05f, this->fwork[44], 0);
+    Math_SmoothStepToAngle(&this->obj.rot.z, this->fwork[41], 0.05f, 2.0f, 0);
+
+    if (this->state != 5) {
+        Math_SmoothStepToF(&this->fwork[29], 0.f, 0.1f, 50.0f, 0);
+        Math_SmoothStepToF(&this->fwork[30], 0.f, 0.1f, 50.0f, 0);
+        Math_SmoothStepToF(&this->fwork[31], 0.f, 0.1f, 50.0f, 0);
+        Math_SmoothStepToF(&this->fwork[32], 0.f, 0.1f, 50.0f, 0);
+        Math_SmoothStepToF(&this->fwork[33], 0.f, 0.1f, 50.0f, 0);
+        Math_SmoothStepToF(&this->fwork[34], 0.f, 0.1f, 50.0f, 0);
+        if (this->state != 4) {
+            Math_SmoothStepToF(&this->fwork[27], 0.0f, 0.1f, 2.0f, 0);
+            Math_SmoothStepToF(&this->fwork[28], 0.0f, 0.1f, 2.0f, 0);
+        }
+    }
+
+    if (this->dmgType != DMG_NONE) {
+        this->dmgType = DMG_NONE;
+        if (this->swork[0] == 1) {
+            if ((this->dmgPart == 0) && ((this->fwork[4] < 45.0f) || (this->fwork[4] > 315.0f))) {
+                AUDIO_PLAY_SFX(NA_SE_EN_DAMAGE_S, this->sfxSource, 4);
+                this->swork[3] -= this->damage;
+                this->timer_054 = 20;
+                Effect_Effect390_Spawn(this->obj.pos.x, this->obj.pos.y + 334.0f, -237.0f + this->obj.pos.z,
+                                       this->vel.x, this->vel.y, this->vel.z, 0.2f, 20);
+
+                if (this->swork[3] <= 0) {
+                    Effect_Effect386_Spawn1(this->obj.pos.x, this->obj.pos.y + 300.0f, this->obj.pos.z, 0.0f, 0.0f,
+                                            0.0f, 10.0f, 50);
+
+                    Effect_Effect390_Spawn(this->obj.pos.x, this->obj.pos.y + 334.0f, -237.0f + this->obj.pos.z,
+                                           this->vel.x, this->vel.y, this->vel.z, 0.15f, 70);
+                    for (i = 0; i < 10; i++) {
+                        Play_SpawnDebris(4, this->obj.pos.x, this->obj.pos.y + 334.0f, -237.0f + this->obj.pos.z);
+                    }
+
+                    Effect_TimedSfx_Spawn(&this->obj.pos, NA_SE_EN_EXPLOSION_L);
+                    this->state = 7;
+                    this->timer_050 = 80;
+                    this->swork[0] = 0;
+                    this->timer_05C = 80;
+                    this->swork[1] = 0;
+                    this->fwork[0] = 0.0f;
+                    this->animFrame = 0;
+                    this->swork[4] = 1;
+                    this->health = 1;
+                    this->swork[7] = 1;
+                    Audio_KillSfxBySourceAndId(D_i2_80195D88, NA_SE_EN_SZMIS_ENGINE);
+                    Audio_KillSfxBySourceAndId(D_i2_80195D98, NA_SE_EN_SZMIS_ENGINE);
+                    this->info.hitbox = SEGMENTED_TO_VIRTUAL(D_SX_603265C);
+                    SEQCMD_STOP_SEQUENCE(SEQ_PLAYER_BGM, 1);
+                    SEQCMD_STOP_SEQUENCE(SEQ_PLAYER_FANFARE, 1);
+                    this->timer_052 = 40;
+                    gScreenFlashTimer = 5;
+                }
+            } else {
+                Effect_TimedSfx_Spawn(&this->obj.pos, NA_SE_EN_REFLECT);
+            }
+        } else {
+            Effect_TimedSfx_Spawn(&this->obj.pos, NA_SE_EN_REFLECT);
+        }
+
+        if (this->swork[0] == 2) {
+            if (this->dmgPart == 0) {
+                this->health -= this->damage;
+
+                AUDIO_PLAY_SFX(NA_SE_EN_DAMAGE_S, this->sfxSource, 4);
+
+                if (this->health <= 0) {
+                    gTeamLowHealthMsgTimer = -1;
+                    this->obj.rot.y = Math_ModF(this->obj.rot.y, 360.0f);
+                    this->state = 20;
+                    this->timer_050 = 300;
+                    this->fwork[0] = 0.0f;
+                    this->animFrame = 0;
+
+                    Radio_PlayMessage(gMsg_ID_5499, RCID_BOSS_SECTORX);
+
+                    Effect_Effect386_Spawn1(this->obj.pos.x, this->obj.pos.y + 300.0f, this->obj.pos.z, 0.0f, 0.0f,
+                                            0.0f, 10.0f, 50);
+
+                    Effect_Effect390_Spawn(this->obj.pos.x, this->obj.pos.y + 334.0f, -237.0f + this->obj.pos.z,
+                                           this->vel.x, this->vel.y, this->vel.z, 0.15f, 70);
+
+                    for (i = 0; i < 10; i++) {
+                        Play_SpawnDebris(4, this->obj.pos.x, this->obj.pos.y + 334.0f, -237.0f + this->obj.pos.z);
+                    }
+
+                    this->swork[4] = 2;
+
+                    AUDIO_PLAY_SFX(NA_SE_EN_DOWN_IMPACT, this->sfxSource, 4);
+
+                    gScreenFlashTimer = 8;
+                    SEQCMD_STOP_SEQUENCE(SEQ_PLAYER_BGM, 1);
+                    SEQCMD_STOP_SEQUENCE(SEQ_PLAYER_FANFARE, 1);
+                    Boss_AwardBonus(this);
+                    this->info.hitbox = gNoHitbox;
+                }
+
+                this->timer_054 = 20;
+                this->timer_05C = this->timer_054;
+                Effect_Effect390_Spawn(this->obj.pos.x, this->obj.pos.y, this->obj.pos.z, this->vel.x, this->vel.y,
+                                       this->vel.z, 0.2f, 10);
+            } else {
+                Effect_TimedSfx_Spawn(&this->obj.pos, NA_SE_EN_REFLECT);
+            }
+        }
+    }
+
+    if (((this->state != 8) && (this->state != 20)) && (gPlayer[0].state != PLAYERSTATE_ACTIVE)) {
+        this->state = 8;
+        this->fwork[0] = 0.0f;
+        Audio_KillSfxBySourceAndId(D_i2_80195D88, NA_SE_EN_SZMIS_ENGINE);
+        Audio_KillSfxBySourceAndId(D_i2_80195D98, NA_SE_EN_SZMIS_ENGINE);
+    }
+
+    this->vel.z = -20.0f;
+
+    switch (this->state) {
+        case 0:
+            this->swork[7] = 1;
+            this->obj.pos.x = gPlayer[0].xPath;
+            this->swork[0] = 0;
+            Animation_GetFrameData(&D_SX_60206DC, this->animFrame, this->vwork);
+            this->fwork[1] = -2000.0f;
+            this->fwork[14] = 300.0f;
+            this->fwork[17] = -300.0f;
+            this->fwork[16] = 3500.0f;
+            this->fwork[19] = 3000.0f;
+            this->state = 90;
+            this->timer_050 = 450;
+            this->swork[3] = 400;
+            this->health = 300;
+            this->info.hitbox = SEGMENTED_TO_VIRTUAL(aSxSpyborgHitbox);
+            gBossActive = true;
+            AUDIO_PLAY_BGM(gBossBgms[gCurrentLevel]);
+            this->swork[6] = 1;
+            this->fwork[44] = 5.0f;
+            this->fwork[43] = 5.0f;
+            this->fwork[42] = 30.0f;
+            break;
+
+        case 90:
+            if ((this->timer_050 == 110) || (this->timer_050 == 66)) {
+                AUDIO_PLAY_SFX(NA_SE_EN_COMBINE, this->sfxSource, 4);
+            }
+
+            if (fabsf(Math_SmoothStepToF(&this->fwork[16], 0.0f, 0.1f, 10.0f, 0)) < 8.0f) {
+                Math_SmoothStepToF(&this->fwork[14], 0.0f, 0.2f, 10.0f, 0);
+                if ((this->timer_050 % 8) == 0) {
+                    Effect_Effect390_Spawn(this->obj.pos.x + 312.0f, this->obj.pos.y, this->obj.pos.z - 173.0f,
+                                           this->vel.x, this->vel.y, this->vel.z, 0.2f, 8);
+                }
+            }
+
+            if (fabsf(Math_SmoothStepToF(&this->fwork[19], 0.0f, 0.1f, 10.0f, 0)) < 8.0f) {
+                Math_SmoothStepToF(&this->fwork[17], 0.0f, 0.2f, 10.0f, 0);
+                if ((this->timer_050 % 8) == 0) {
+                    Effect_Effect390_Spawn(this->obj.pos.x - 312.0f, this->obj.pos.y, this->obj.pos.z - 173.0f,
+                                           this->vel.x, this->vel.y, this->vel.z, 0.2f, 8);
+                }
+            }
+
+            if (this->timer_050 == 0) {
+                this->state = 100;
+                this->fwork[0] = 0.0f;
+                AUDIO_PLAY_SFX(NA_SE_EN_MOTOR_ROLL, this->sfxSource, 4);
+            }
+            this->fwork[43] = this->fwork[44] = 5.0f;
+            this->fwork[42] = 30.0f;
+            break;
+
+        case 100:
+            this->fwork[1] = -2000.0f;
+
+            frameData = Animation_GetFrameData(&D_SX_60206DC, this->animFrame, frameTable);
+            Math_SmoothStepToVec3fArray(frameTable, this->vwork, 1, frameData, this->fwork[0], 100.0f, 0.0f);
+
+            Math_SmoothStepToF(&this->fwork[0], 1.0f, 1.0f, 0.05f, 0);
+            this->animFrame++;
+
+            if (this->animFrame >= Animation_GetFrameCount(&D_SX_60206DC)) {
+                this->animFrame = 0;
+                this->state = 1;
+                this->fwork[0] = 0.0f;
+                AUDIO_PLAY_SFX(NA_SE_EN_UNIT_COMBINE, this->sfxSource, 4);
+            }
+
+            this->fwork[43] = this->fwork[44] = 5.0f;
+            this->fwork[42] = 30.0f;
+            break;
+
+        case 1: // Taunt
+            this->fwork[1] = -1800.0f;
+            this->fwork[3] = gPlayer[0].pos.x;
+            this->fwork[2] = gPlayer[0].pos.y;
+            this->fwork[42] = 30.0f;
+            this->fwork[44] = 5.0f;
+            this->fwork[43] = 5.0f;
+
+            frameData = Animation_GetFrameData(&D_SX_6016E28, this->animFrame, frameTable);
+            Math_SmoothStepToVec3fArray(frameTable, this->vwork, 1, frameData, this->fwork[0], 100.0f, 0.0f);
+
+            Math_SmoothStepToF(&this->fwork[0], 1.0f, 1.0f, 0.05f, 0);
+
+            this->animFrame++;
+            if (this->animFrame >= Animation_GetFrameCount(&D_SX_6016E28)) {
+                this->animFrame = 0;
+                this->state = 2;
+                this->fwork[0] = 0.0f;
+                this->swork[1] = 1;
+                this->swork[0] = 1;
+                Radio_PlayMessage(gMsg_ID_5494, RCID_BOSS_SECTORX);
+            }
+            break;
+
+        case 2: // right arm attack
+            attack = true;
+            this->fwork[3] = gPlayer[0].pos.x;
+            this->fwork[2] = gPlayer[0].pos.y;
+
+            if (this->animFrame > 60) {
+                this->fwork[1] = -1000.0f;
+                Math_SmoothStepToF(&this->fwork[42], 100.0f, 1.0f, 20.0f, 0);
+                this->fwork[43] = this->fwork[44] = 10.0f;
+            } else {
+                this->fwork[1] = -2000.0f;
+                Math_SmoothStepToF(&this->fwork[42], 30.0f, 1.0f, 3.0f, 0);
+                this->fwork[43] = this->fwork[44] = 10.0f;
+            }
+
+            if (this->animFrame == 60) {
+                AUDIO_PLAY_SFX(NA_SE_EN_THROW, this->sfxSource, 4);
+                this->fwork[42] = 0.0f;
+            }
+
+            frameData = Animation_GetFrameData(&D_SX_60123BC, this->animFrame, frameTable);
+            Math_SmoothStepToVec3fArray(frameTable, this->vwork, 1, frameData, this->fwork[0], 100.0f, 0.0f);
+
+            Math_SmoothStepToF(&this->fwork[0], 1.0f, 1.0f, 0.05f, 0);
+
+            this->animFrame++;
+            if (this->animFrame >= Animation_GetFrameCount(&D_SX_60123BC)) {
+                this->animFrame = 0;
+                this->state = 3;
+                this->fwork[42] = this->fwork[43] = this->fwork[44] = this->fwork[0] = 0.0f;
+                this->swork[7] = 0;
+            }
+            break;
+
+        case 3: // left arm attack
+            attack = true;
+            this->fwork[3] = gPlayer[0].pos.x;
+            this->fwork[2] = gPlayer[0].pos.y;
+
+            if (this->animFrame > 60) {
+                this->fwork[1] = -1000.0f;
+                Math_SmoothStepToF(&this->fwork[42], 100.0f, 1.0f, 20.0f, 0);
+                this->fwork[44] = 10.0f;
+                this->fwork[43] = 10.0f;
+            } else {
+                this->fwork[1] = -2500.0f;
+                Math_SmoothStepToF(&this->fwork[42], 30.0f, 1.0f, 3.0f, 0);
+                this->fwork[44] = 10.0f;
+                this->fwork[43] = 10.0f;
+            }
+
+            if (this->animFrame == 60) {
+                AUDIO_PLAY_SFX(NA_SE_EN_THROW, this->sfxSource, 4);
+                this->fwork[42] = 0.0f;
+            }
+
+            frameData = Animation_GetFrameData(&D_SX_6013798, this->animFrame, frameTable);
+            Math_SmoothStepToVec3fArray(frameTable, this->vwork, 1, frameData, this->fwork[0], 100.0f, 0.0f);
+
+            Math_SmoothStepToF(&this->fwork[0], 1.0f, 1.0f, 0.05f, 0);
+
+            this->animFrame++;
+            if (this->animFrame >= Animation_GetFrameCount(&D_SX_6013798)) {
+                this->animFrame = 0;
+                this->fwork[0] = 0.0f;
+                if (this->swork[3] <= 250) {
+                    this->state = 4;
+                    this->timer_050 = 100;
+                    Radio_PlayMessage(gMsg_ID_5495, RCID_BOSS_SECTORX);
+                    this->fwork[44] = 0.0f;
+                    this->fwork[43] = 0.0f;
+                    this->fwork[42] = 0.0f;
+                } else {
+                    this->state = 1;
+                    this->swork[1] = 1;
+                    this->swork[7] = 1;
+                }
+            }
+            break;
+
+        case 4: // Arms launch setup
+            this->swork[7] = 0;
+            this->fwork[1] = -3000.0f;
+            this->fwork[3] = gPlayer[0].pos.x;
+            this->fwork[2] = gPlayer[0].pos.y;
+
+            Math_SmoothStepToF(&this->fwork[44], 10.0f, 1.0f, 1.0f, 0);
+            Math_SmoothStepToF(&this->fwork[43], 10.0f, 1.0f, 1.0f, 0);
+            Math_SmoothStepToF(&this->fwork[42], 50.0f, 1.0f, 3.0f, 0);
+
+            frameData = Animation_GetFrameData(&D_SX_6016E28, 0, frameTable);
+            Math_SmoothStepToVec3fArray(frameTable, this->vwork, 1, frameData, this->fwork[0], 100.0f, 0.0f);
+
+            Math_SmoothStepToF(&this->fwork[0], 1.0f, 1.0f, 0.05f, 0);
+            Math_SmoothStepToF(&this->fwork[27], 30.0f, 0.05f, 1.0f, 0);
+            Math_SmoothStepToF(&this->fwork[28], -30.0f, 0.05f, 1.0f, 0);
+
+            if (this->timer_050 == 0) {
+                this->state = 5;
+                this->timer_050 = 100;
+                Radio_PlayMessage(gMsg_ID_5496, RCID_FOX);
+            }
+            break;
+
+        case 5: // arms lauching attack
+            sfxPos.x = this->fwork[8] + this->obj.pos.x;
+            sfxPos.y = this->fwork[9] + this->obj.pos.y;
+            sfxPos.z = this->fwork[10] + this->obj.pos.z;
+
+            Object_SetSfxSourceToPos(D_i2_80195D88, &sfxPos);
+            AUDIO_PLAY_SFX(NA_SE_EN_SZMIS_ENGINE, D_i2_80195D88, 4);
+
+            sfxPos.x = this->fwork[11] + this->obj.pos.x;
+            sfxPos.y = this->fwork[12] + this->obj.pos.y;
+            sfxPos.z = this->fwork[13] + this->obj.pos.z;
+
+            Object_SetSfxSourceToPos(D_i2_80195D98, &sfxPos);
+            AUDIO_PLAY_SFX(NA_SE_EN_SZMIS_ENGINE, D_i2_80195D98, 4);
+
+            Math_SmoothStepToF(&this->fwork[27], 30.0f, 0.05f, 1.0f, 0);
+            Math_SmoothStepToF(&this->fwork[28], -30.0f, 0.05f, 1.0f, 0);
+
+            sp60 = fabsf(this->obj.pos.x + this->fwork[8] - gPlayer[0].pos.x) * 0.1f;
+
+            if (sp60 > 5.0f) {
+                sp60 = 5.0f;
+            }
+
+            if ((this->obj.pos.x + this->fwork[8]) < gPlayer[0].pos.x) {
+                this->fwork[29] += sp60;
+            }
+
+            if (gPlayer[0].pos.x < (this->obj.pos.x + this->fwork[8])) {
+                this->fwork[29] -= sp60;
+            }
+
+            sp60 = fabsf((this->obj.pos.y + this->fwork[9]) - gPlayer[0].pos.y) * 0.1f;
+
+            if (sp60 > 5.0f) {
+                sp60 = 5.0f;
+            }
+
+            if ((this->obj.pos.y + this->fwork[9]) < gPlayer[0].pos.y) {
+                this->fwork[30] += sp60;
+            }
+
+            if (gPlayer[0].pos.y < (this->obj.pos.y + this->fwork[9])) {
+                this->fwork[30] -= sp60;
+            }
+
+            sp60 = fabsf((this->obj.pos.x + this->fwork[11]) - gPlayer[0].pos.x) * 0.1f;
+
+            if (sp60 > 5.0f) {
+                sp60 = 5.0f;
+            }
+
+            if ((this->obj.pos.x + this->fwork[11]) < gPlayer[0].pos.x) {
+                this->fwork[32] += sp60;
+            }
+
+            if (gPlayer[0].pos.x < (this->obj.pos.x + this->fwork[11])) {
+                this->fwork[32] -= sp60;
+            }
+
+            sp60 = fabsf((this->obj.pos.y + this->fwork[12]) - gPlayer[0].pos.y) * 0.1f;
+
+            if (sp60 > 5.0f) {
+                sp60 = 5.0f;
+            }
+
+            if ((this->obj.pos.y + this->fwork[12]) < gPlayer[0].pos.y) {
+                this->fwork[33] += sp60;
+            }
+
+            if (gPlayer[0].pos.y < (this->obj.pos.y + this->fwork[12])) {
+                this->fwork[33] -= sp60;
+            }
+
+            Math_SmoothStepToF(&this->fwork[31], 4000.0f, 1.0f, 80.0f, 0);
+
+            if (this->timer_050 < 70) {
+                Math_SmoothStepToF(&this->fwork[34], 4000.0f, 1.0f, 80.0f, 0);
+            }
+
+            if (this->timer_050 == 0) {
+                this->state = 6;
+                this->timer_050 = 122;
+            }
+            break;
+
+        case 6: // Arms come back to robot
+            if ((this->timer_050 == 20) || (this->timer_050 == 30)) {
+                AUDIO_PLAY_SFX(NA_SE_EN_COMBINE, this->sfxSource, 4);
+            }
+
+            if (this->timer_050 == 0) {
+                this->animFrame = 0;
+                this->state = 1;
+                this->swork[1] = 1;
+                Audio_KillSfxBySourceAndId(D_i2_80195D88, NA_SE_EN_SZMIS_ENGINE);
+                Audio_KillSfxBySourceAndId(D_i2_80195D98, NA_SE_EN_SZMIS_ENGINE);
+                this->fwork[0] = 0.0f;
+                this->fwork[44] = 0.0f;
+                this->fwork[43] = 0.0f;
+                this->fwork[42] = 0.0f;
+                this->swork[7] = 1;
+            }
+            break;
+
+        case 7:
+            if (this->timer_052 == 1) {
+                Radio_PlayMessage(gMsg_ID_15252, RCID_SLIPPY);
+            }
+            this->fwork[41] = 20.0;
+            this->fwork[2] = -400.0f;
+            this->fwork[42] = 30.0f;
+
+            frameData = Animation_GetFrameData(&D_SX_601C690, this->animFrame, frameTable);
+            Math_SmoothStepToVec3fArray(frameTable, this->vwork, 1, frameData, this->fwork[0], 100.0f, 0.0f);
+
+            Math_SmoothStepToF(&this->fwork[0], 1.0f, 1.0f, 0.05f, 0);
+
+            this->animFrame++;
+            if (this->animFrame >= Animation_GetFrameCount(&D_SX_601C690)) {
+                this->state = 75;
+                this->fwork[0] = 0.0f;
+                this->animFrame = 0;
+                this->timer_050 = 120;
+            }
+            break;
+
+        case 75:
+            this->fwork[41] = 20.0f;
+            this->fwork[2] = -400.0f;
+
+            frameData = Animation_GetFrameData(&D_SX_600A2D4, 0, frameTable);
+            Math_SmoothStepToVec3fArray(frameTable, this->vwork, 1, frameData, this->fwork[0], 2.5f, 0.0f);
+
+            Math_SmoothStepToF(&this->fwork[0], 0.1f, 1.0f, 0.005f, 0);
+
+            if (this->timer_050 == 0) {
+                this->state = 8;
+                this->fwork[0] = 0.0f;
+                this->animFrame = 0;
+                this->health = 300;
+                Audio_PlaySequenceDistorted(0, gBossBgms[gCurrentLevel], 1121, 25, -1);
+                Radio_PlayMessage(gMsg_ID_19205, RCID_FOX);
+                this->timer_052 = 100;
+            }
+            break;
+
+        case 8:
+            if (this->timer_052 == 1) {
+                Radio_PlayMessage(gMsg_ID_5497, RCID_BOSS_SECTORX);
+            }
+            this->fwork[41] = 0.0f;
+            this->fwork[2] = gPlayer[0].pos.y;
+            this->fwork[3] = gPlayer[0].pos.x;
+            this->fwork[44] = 5.0f;
+            this->fwork[1] = -1800.0f;
+            this->fwork[43] = 5.0f;
+            this->fwork[42] = 30.0f;
+
+            frameData = Animation_GetFrameData(&D_SX_600F890, this->animFrame, frameTable);
+            Math_SmoothStepToVec3fArray(frameTable, this->vwork, 1, frameData, this->fwork[0], 100.0f, 0.0f);
+
+            Math_SmoothStepToF(&this->fwork[0], 1.0f, 1.0f, 0.02f, 0);
+
+            this->animFrame++;
+            if (this->animFrame >= Animation_GetFrameCount(&D_SX_600F890)) {
+                this->animFrame = 0;
+                this->fwork[0] = 0.0f;
+                this->state = 9;
+                this->swork[0] = 2;
+                this->timer_050 = 30;
+            }
+            break;
+
+        case 85:
+            this->fwork[1] = -3000.0f;
+            this->fwork[2] = gPlayer[0].pos.y;
+            this->fwork[3] = gPlayer[0].pos.x;
+
+            frameData = Animation_GetFrameData(&D_SX_60123BC, this->animFrame, frameTable);
+            Math_SmoothStepToVec3fArray(frameTable, this->vwork, 1, frameData, this->fwork[0], 50.0f, 0.0f);
+
+            Math_SmoothStepToF(&this->fwork[0], 1.0f, 1.0f, 0.01f, 0);
+
+            if (this->timer_050 == 0) {
+                this->animFrame++;
+                if (this->animFrame >= Animation_GetFrameCount(&D_SX_60123BC)) {
+                    this->animFrame = Animation_GetFrameCount(&D_SX_60123BC) - 1;
+                    if (gPlayer[0].state != PLAYERSTATE_STANDBY) {
+                        this->animFrame = 0;
+                        this->state = 10;
+                        this->fwork[0] = 0.0f;
+                        this->fwork[42] = 0.0f;
+                    }
+                }
+                if (this->animFrame == 60) {
+                    AUDIO_PLAY_SFX(NA_SE_EN_THROW, this->sfxSource, 4);
+                }
+            } else if (this->timer_050 == 1) {
+                Radio_PlayMessage(gMsg_ID_20267, RCID_PEPPY);
+            }
+            break;
+
+        case 9:
+            if (this->timer_050 == 1) {
+                Radio_PlayMessage(gMsg_ID_5492, RCID_BOSS_SECTORX);
+            }
+            this->fwork[1] = -2000.0f;
+            this->fwork[2] = gPlayer[0].pos.y;
+            this->fwork[3] = gPlayer[0].pos.x;
+
+            frameData = Animation_GetFrameData(&D_SX_601AA28, this->animFrame, frameTable);
+            Math_SmoothStepToVec3fArray(frameTable, this->vwork, 1, frameData, this->fwork[0], 50.0f, 0.0f);
+
+            Math_SmoothStepToF(&this->fwork[0], 1.0f, 1.0f, 0.01f, 0);
+            this->animFrame++;
+
+            if (this->animFrame >= Animation_GetFrameCount(&D_SX_601AA28)) {
+                this->animFrame = 0;
+                this->state = 10;
+                this->fwork[0] = 0.0f;
+                this->fwork[42] = 0.0f;
+                if (this->swork[10] == 0) {
+                    Radio_PlayMessage(gMsg_ID_5474, RCID_FALCO);
+                }
+                this->swork[10] = 1;
+            }
+
+            if (this->animFrame == 70) {
+                SectorX_8018FA04(this->fwork[11] + this->obj.pos.x, this->fwork[12] + this->obj.pos.y,
+                                 this->fwork[13] + this->obj.pos.z);
+                AUDIO_PLAY_SFX(NA_SE_EN_THROW, this->sfxSource, 4);
+            }
+            break;
+
+        case 10:
+            attack = true;
+            this->fwork[1] = -1000.0f;
+            Math_SmoothStepToF(&this->fwork[42], 50.0f, 1.0f, 3.0f, 0);
+
+            frameData = Animation_GetFrameData(&D_SX_60158C4, this->animFrame, frameTable);
+            Math_SmoothStepToVec3fArray(frameTable, this->vwork, 1, frameData, this->fwork[0], 100.0f, 0.0f);
+
+            Math_SmoothStepToF(&this->fwork[0], 1.0f, 1.0f, 0.05f, 0);
+
+            this->animFrame++;
+            if ((this->animFrame % 16) == 0) {
+                AUDIO_PLAY_SFX(NA_SE_EN_THROW, this->sfxSource, 4);
+            }
+
+            if (this->animFrame >= Animation_GetFrameCount(&D_SX_60158C4)) {
+                this->animFrame = 0;
+                this->fwork[0] = 0.0f;
+
+                if ((gBossFrameCount < 2200) || (gTeamShields[TEAM_ID_SLIPPY] <= 0)) {
+                    if (this->health > 150) {
+                        this->state = 8;
+                    } else {
+                        this->state = 35;
+                        this->timer_050 = 400;
+                        this->fwork[42] = this->fwork[43] = this->fwork[44] = this->orient.y = 0.0f;
+                        this->swork[9] = RAND_INT(1.9f);
+                        Radio_PlayMessage(gMsg_ID_5498, RCID_BOSS_SECTORX);
+                    }
+                } else {
+                    this->state = 85;
+                    SectorX_8018F030();
+                    this->timer_050 = 100;
+                }
+            }
+            break;
+
+        case 35:
+            if (this->swork[9] != 0) {
+                this->fwork[2] = 500.0f;
+            } else {
+                this->fwork[2] = -500.0f;
+            }
+
+            if (this->timer_050 > 300) {
+                this->fwork[3] = 1000.0f;
+                this->fwork[1] = -2000.0f;
+            } else if (this->timer_050 > 200) {
+                this->fwork[3] = -1000.0f;
+                this->fwork[1] = -2500.0f;
+                if ((gGameFrameCount % 16) == 0) {
+                    AUDIO_PLAY_SFX(NA_SE_EN_THROW, this->sfxSource, 4);
+                }
+            } else if (this->timer_050 > 100) {
+                this->fwork[3] = 0;
+                this->fwork[1] = -500.0f;
+                if (((gGameFrameCount % 16) == 0)) {
+                    AUDIO_PLAY_SFX(NA_SE_EN_THROW, this->sfxSource, 4);
+                }
+            } else {
+                this->fwork[3] = 0;
+                this->fwork[1] = -2000.0f;
+            }
+
+            Math_SmoothStepToF(&this->fwork[42], 60.0f, 1.0f, 1.0f, 0);
+            Math_SmoothStepToF(&this->fwork[44], 20.0f, 1.0f, 0.5f, 0);
+            Math_SmoothStepToF(&this->fwork[43], 20.0f, 1.0f, 0.5f, 0);
+
+            frameData = Animation_GetFrameData(&D_SX_6009FF8, 0, frameTable);
+            Math_SmoothStepToVec3fArray(frameTable, this->vwork, 1, frameData, this->fwork[0], 5.0f, 0.0f);
+
+            Math_SmoothStepToF(&this->fwork[0], 0.1f, 1.0f, 0.001f, 0);
+            Math_SmoothStepToF(&this->orient.y, 10.0f, 1.0f, 0.1f, 0);
+            Math_SmoothStepToF(&this->obj.rot.y, 2880.0f, 0.1f, this->orient.y, 0.1f);
+
+            if ((this->timer_050 == 0) && (this->obj.rot.y == 2880.0f)) {
+                this->obj.rot.y = 0.0f;
+                this->animFrame = 0;
+                this->fwork[0] = 0.0f;
+                if ((gBossFrameCount < 2200) || (gTeamShields[TEAM_ID_SLIPPY] <= 0)) {
+                    this->state = 9;
+                } else {
+                    this->state = 85;
+                    SectorX_8018F030();
+                    this->timer_050 = 100;
+                }
+            }
+            break;
+
+        case 20:
+            Math_SmoothStepToF(&this->obj.rot.y, 0.0f, 0.1f, 3.0f, 0.1f);
+            this->swork[0] = 0;
+            this->fwork[1] = -1800.0f;
+            this->fwork[41] = 340.0f;
+            this->fwork[2] = -400.0f;
+
+            frameData = Animation_GetFrameData(&D_SX_601C690, this->animFrame, frameTable);
+            Math_SmoothStepToVec3fArray(frameTable, this->vwork, 1, frameData, this->fwork[0], 100.0f, 0.0f);
+
+            Math_SmoothStepToF(&this->fwork[0], 1.0f, 1.0f, 0.05f, 0);
+            this->animFrame++;
+
+            if (this->animFrame >= Animation_GetFrameCount(&D_SX_601C690)) {
+                this->animFrame = Animation_GetFrameCount(&D_SX_601C690);
+            }
+
+            if ((this->timer_050 & 3) == 0) {
+                Effect_FireSmoke1_Spawn3(RAND_FLOAT_CENTERED(500.0f) + this->obj.pos.x,
+                                         RAND_FLOAT_CENTERED(500.0f) + this->obj.pos.y, this->obj.pos.z + 100.0f,
+                                         RAND_FLOAT(5.0f) + 5.0f);
+            }
+
+            if (((gGameFrameCount % 8) == 0) && (Rand_ZeroOne() < 0.5f)) {
+                this->timer_05C = 4;
+            }
+
+            if ((this->timer_050 & 3) == 0) {
+                Effect_Effect390_Spawn(this->obj.pos.x, this->obj.pos.y, this->obj.pos.z, this->vel.x, this->vel.y,
+                                       this->vel.z, 0.3f, 10);
+            }
+
+            if (this->timer_050 < 230) {
+                Math_SmoothStepToF(&this->fwork[14], 10000.0f, 1.0f, 60.0f, 0);
+                Math_SmoothStepToF(&this->fwork[17], -10000.0f, 1.0f, 60.0f, 0);
+            }
+
+            if (this->timer_050 == 230) {
+                gShowBossHealth = false;
+                Effect_Effect386_Spawn1(this->obj.pos.x, this->obj.pos.y, this->obj.pos.z, 0.0f, 0.0f, 0.0f, 30.0f, 40);
+                Effect_Effect383_Spawn(this->obj.pos.x, this->obj.pos.y, this->obj.pos.z, 40.0f);
+            }
+
+            if (this->timer_050 == 210) {
+                this->swork[5] = 1;
+                this->timer_05A = 1000;
+            }
+
+            if (this->timer_050 == 120) {
+                if ((gPlayer[0].state != PLAYERSTATE_NEXT) && (gPlayer[0].state != PLAYERSTATE_DOWN)) {
+                    gPlayer[0].state = PLAYERSTATE_LEVEL_COMPLETE;
+                    gPlayer[0].csState = 0;
+                    gPlayer[0].draw = true;
+                }
+                Object_Kill(&this->obj, this->sfxSource);
+                gMissionStatus = this->swork[6];
+            }
+            break;
+
+        default:
+            break;
+    }
+
+    D_i2_80195640 = 1;
+
+    /**
+     * @Recomp:
+     * For some reason aSxSpyborgSkel is drawn twice, once in this function and once in SectorX_SxSpyborg_Draw(),
+     * causing interpolation issues when pausing.
+     * We can't detect a pause from an actor update function so we rely on input press.
+     */
+    if (!(gControllerPress->button & START_BUTTON)) {
+        Animation_DrawSkeleton(1, aSxSpyborgSkel, this->vwork, SectorX_SxSpyborg_OverrideLimbDraw,
+                               SectorX_SxSpyborg_PostLimbDraw, this, &gIdentityMatrix);
+    }
+
+    if (((this->swork[1] != 0) && (this->swork[3] > 0)) && ((this->fwork[4] < 45.0f) || (this->fwork[4] > 315.0f))) {
+        this->swork[1]++;
+        if (this->swork[1] > 40) {
+            if (this->swork[1] > 50) {
+                this->swork[1] = 0;
+            }
+            Effect_ShootAtPlayer(OBJ_EFFECT_SPYBORG_ORB, this->fwork[20] + this->obj.pos.x,
+                                 this->fwork[21] + this->obj.pos.y, this->fwork[22] + this->obj.pos.z, 100.0f);
+            Effect_ShootAtPlayer(OBJ_EFFECT_SPYBORG_ORB, this->fwork[23] + this->obj.pos.x,
+                                 this->fwork[24] + this->obj.pos.y, this->fwork[25] + this->obj.pos.z, 100.0f);
+        }
+    } else {
+        this->swork[1] = 0;
+    }
+
+    if (this->state != 35) {
+        this->info.hitbox = SEGMENTED_TO_VIRTUAL(aSxSpyborgHitbox);
+        this->info.hitbox[43] = -211.0f + this->fwork[16];
+        this->info.hitbox[45] = -35.0f + this->fwork[15];
+        this->info.hitbox[47] = 442.0f + this->fwork[14];
+        this->info.hitbox[49] = -211.0f + this->fwork[19];
+        this->info.hitbox[51] = -35.0f + this->fwork[18];
+        this->info.hitbox[53] = -442.0f + this->fwork[17];
+        this->info.hitbox[55] = this->fwork[10];
+        this->info.hitbox[57] = this->fwork[9];
+        this->info.hitbox[59] = this->fwork[8];
+        this->info.hitbox[61] = this->fwork[13];
+        this->info.hitbox[63] = this->fwork[12];
+        this->info.hitbox[65] = this->fwork[11];
+
+        if (attack) {
+            this->info.hitbox[56] = 200.0f;
+            this->info.hitbox[58] = 200.0f;
+            this->info.hitbox[60] = 100.0f;
+            this->info.hitbox[62] = 200.0f;
+            this->info.hitbox[64] = 200.0f;
+            this->info.hitbox[66] = 100.0f;
+        } else {
+            this->info.hitbox[56] = 200.0f;
+            this->info.hitbox[58] = 100.0f;
+            this->info.hitbox[60] = 70.0f;
+            this->info.hitbox[62] = 200.0f;
+            this->info.hitbox[64] = 100.0f;
+            this->info.hitbox[66] = 70.0f;
+        }
+    } else {
+        this->info.hitbox = SEGMENTED_TO_VIRTUAL(D_SX_6032768);
+    }
+
+    if (this->swork[0] == 1) {
+        Math_SmoothStepToF(&this->fwork[45], 1.0f, 1.0f, 0.05f, 0);
+    } else {
+        Math_SmoothStepToF(&this->fwork[45], 0.0f, 1.0f, 0.05f, 0);
+    }
 }
 #endif
