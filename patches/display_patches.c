@@ -138,8 +138,16 @@ RECOMP_PATCH void Display_Update(void) {
         gPlayCamAt.z = camPlayer->cam.at.z;
     }
 
+    static PlayState prevPlayState = 0;
     static int camSkipTimes = 0;
+
     bool bigJump = !should_interpolate_perspective(&gPlayCamEye, &gPlayCamAt);
+
+    // @recomp: Force interpolation camera skip if we're transitioning to or from a pause state.
+    if (((prevPlayState == PLAY_PAUSE) && (gPlayState == PLAY_UPDATE)) ||
+        ((prevPlayState == PLAY_UPDATE) && (gPlayState == PLAY_PAUSE))) {
+        bigJump = true;
+    }
 
     if (bigJump) {
         // Skip interpolation for this frame.
@@ -156,6 +164,8 @@ RECOMP_PATCH void Display_Update(void) {
                              G_EX_COMPONENT_SKIP);
         gCamera1Skipped = false;
     }
+
+    prevPlayState = gPlayState;
 
     camPlayer->camYaw = -Math_Atan2F(gPlayCamEye.x - gPlayCamAt.x, gPlayCamEye.z - gPlayCamAt.z);
     camPlayer->camPitch = -Math_Atan2F(gPlayCamEye.y - gPlayCamAt.y,
@@ -321,7 +331,7 @@ RECOMP_PATCH void Display_Update(void) {
     Display_DrawHelpAlert();
     sPlayersVisible[gPlayerNum] = false;
     Matrix_Pop(&gGfxMatrix);
-    
+
     // @recomp: Warpzone cutscene recording
     if (gPlayer[0].state == PLAYERSTATE_ENTER_WARP_ZONE) {
         if (gPlayer[0].csState == 0) {
