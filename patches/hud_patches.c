@@ -983,19 +983,19 @@ RECOMP_PATCH void HUD_RadarWindow_Draw(f32 x, f32 y) {
 }
 #endif
 
-#if 0
+#if 1
+// @recomp: Tag radar marks
 RECOMP_PATCH s32 HUD_RadarMarks_Update(void) {
-    s32 i;
-    f32 scale;
-    f32 x1 = 0;
-    f32 y1 = 0;
-    f32 z1 = 0;
-    f32 x = 0;
-    f32 y = 0;
-    s32 pad;
-    f32 temp;
-    f32 temp2;
-    f32 temp3;
+    s32 i = 0;
+    f32 scale = 0.0f;
+    f32 x1 = 0.0f;
+    f32 y1 = 0.0f;
+    f32 z1 = 0.0f;
+    f32 x = 0.0f;
+    f32 y = 0.0f;
+    f32 temp = 0.0f;
+    f32 temp2 = 0.0f;
+    f32 temp3 = 0.0f;
 
     if (!gVersusMode) {
         if (gLevelMode != LEVELMODE_ALL_RANGE) {
@@ -1115,16 +1115,7 @@ RECOMP_PATCH s32 HUD_RadarMarks_Update(void) {
     }
 
     Matrix_Push(&gGfxMatrix);
-
-    if (gVersusMode) {
-        f32 tempX = ((f32) gViewport->vp.vscale[0] / 2.0f) / ((f32) gViewport->vp.vscale[1] / 2.0f);
-        // recomp_printf("Orig X1 pos: %f\n", x1);
-        // x1 = x1 * +tempX;
-        Matrix_Translate(gGfxMatrix, x1, y1, z1, MTXF_APPLY);
-        // recomp_printf("X1 pos: %f\n", x1);
-    } else {
-        Matrix_Translate(gGfxMatrix, x1, y1, z1, MTXF_APPLY);
-    }
+    Matrix_Translate(gGfxMatrix, x1, y1, z1, MTXF_APPLY);
 
     if ((gCurrentLevel == LEVEL_SECTOR_Z) && (gRadarMissileAlarmTimer != 0)) {
         Matrix_Push(&gGfxMatrix);
@@ -1150,7 +1141,15 @@ RECOMP_PATCH s32 HUD_RadarMarks_Update(void) {
         Matrix_Scale(gGfxMatrix, scale, scale, 1.0f, MTXF_APPLY);
         Matrix_SetGfxMtx(&gMasterDisp);
 
+        // @recomp Tag the transform.
+        gEXMatrixGroupDecomposedNormal(gMasterDisp++, (u32) &gRadarMarks[i], G_EX_PUSH, G_MTX_MODELVIEW,
+                                       G_EX_EDIT_ALLOW);
+
         HUD_RadarMark_Draw(gRadarMarks[i].type);
+
+        // @recomp Pop the transform id.
+        gEXPopMatrixGroup(gMasterDisp++, G_MTX_MODELVIEW);
+
         Matrix_Pop(&gGfxMatrix);
 
         gRadarMarks[i].enabled = false;
