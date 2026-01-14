@@ -1,15 +1,6 @@
 #include "patches.h"
-
 #include "misc_funcs.h"
 
-// #define va_end(__list)
-// #define va_start(vp, parmN) (vp = ((va_list)&parmN + sizeof(parmN)))
-// 
-// typedef unsigned int   size_t;
-// typedef char *va_list;
-// typedef void* (*PrintCallback)(void*, const char*, size_t);
-
-// int _Printf(PrintCallback pfn, void* arg, const char* fmt, va_list ap);
 typedef unsigned int size_t;
 
 typedef char *outfun(char*,const char*,size_t);
