@@ -873,6 +873,9 @@ RECOMP_PATCH void HUD_EdgeArrows_Draw(s32 idx, bool arg1) {
     static const f32 D_800D1FE8[] = { 0.0f, 0.0f, 2.0f, -2.0f, -2.0f, -2.0f, -2.0f, -2.0f, 0.0f, 0.0f, 2.0f, -2.0f };
     static const f32 D_800D2018[] = { 2.0f, -2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, -2.0f, 2.0f, 0.0f, 0.0f };
 
+    gEXMatrixGroupDecomposedNormal(gMasterDisp++, (TAG_EDGE_ARROWS | arg1 << 16) + idx, G_EX_PUSH,
+                                   G_MTX_MODELVIEW, G_EX_EDIT_ALLOW);
+
     Matrix_Push(&gGfxMatrix);
 
     if (gPlayer[0].alternateView) {
@@ -913,6 +916,9 @@ RECOMP_PATCH void HUD_EdgeArrows_Draw(s32 idx, bool arg1) {
     gSPDisplayList(gMasterDisp++, aArrowDL);
 
     Matrix_Pop(&gGfxMatrix);
+
+    // Pop the transform id
+    gEXPopMatrixGroup(gMasterDisp++, G_MTX_MODELVIEW);
 }
 #endif
 
