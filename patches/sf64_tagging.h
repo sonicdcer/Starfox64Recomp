@@ -49,6 +49,7 @@
 #define TAG_CHARGED_SHOT (0x2056)
 #define TAG_BARREL_ROLL (0x2066)
 #define TAG_HUD_GOLD_RING (0x2080)
+#define TAG_EDGE_ARROWS (0x2100)
 
 /* Background */
 #define TAG_STARFIELD (0xD0000000)
@@ -75,6 +76,9 @@
 #define TAG_CURSOR (0xA0002070)
 #define TAG_PEPPER_FACE (0xA0002071)
 #define TAG_WARP (0xA0002080)
+
+/* Camera*/
+#define TAG_CAMERA_1 (0xFFFF1992)
 
 /* Ground */
 #define TAG_GROUND (0xB0000000)

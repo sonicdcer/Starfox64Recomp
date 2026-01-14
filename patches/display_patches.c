@@ -151,14 +151,14 @@ RECOMP_PATCH void Display_Update(void) {
 
     if (bigJump) {
         // Skip interpolation for this frame.
-        gEXMatrixGroupSimple(gMasterDisp++, 0xFFFFAAAA, G_EX_NOPUSH, G_MTX_PROJECTION, G_EX_COMPONENT_SKIP,
+        gEXMatrixGroupSimple(gMasterDisp++, TAG_CAMERA_1, G_EX_NOPUSH, G_MTX_PROJECTION, G_EX_COMPONENT_SKIP,
                              G_EX_COMPONENT_SKIP, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_INTERPOLATE,
                              G_EX_ORDER_LINEAR, G_EX_EDIT_NONE, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_SKIP);
         recomp_printf("CAMERA 1 SKIPED: %d\n", camSkipTimes++);
         gCamera1Skipped = true;
     } else {
         // Simple interpolation works much better for cameras because they orbit around a focus.
-        gEXMatrixGroupSimple(gMasterDisp++, 0xFFFFAAAA, G_EX_NOPUSH, G_MTX_PROJECTION, G_EX_COMPONENT_INTERPOLATE,
+        gEXMatrixGroupSimple(gMasterDisp++, TAG_CAMERA_1, G_EX_NOPUSH, G_MTX_PROJECTION, G_EX_COMPONENT_INTERPOLATE,
                              G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE,
                              G_EX_COMPONENT_INTERPOLATE, G_EX_ORDER_LINEAR, G_EX_EDIT_NONE, G_EX_COMPONENT_SKIP,
                              G_EX_COMPONENT_SKIP);
