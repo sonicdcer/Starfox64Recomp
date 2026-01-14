@@ -459,8 +459,8 @@ RECOMP_PATCH void Background_DrawGround(void) {
                                                 G_EX_EDIT_NONE);
             } else {
                 // @recomp Tag the transform.
-                gEXMatrixGroupDecomposedVertsOrderAuto(gMasterDisp++, TAG_GROUND, G_EX_PUSH, G_MTX_MODELVIEW,
-                                                       G_EX_EDIT_ALLOW);
+                gEXMatrixGroupDecomposedNormal(gMasterDisp++, TAG_GROUND_ON_RAILS, G_EX_PUSH, G_MTX_MODELVIEW,
+                                               G_EX_EDIT_ALLOW);
                 //// @recomp Tag the transform.
                 // gEXMatrixGroupDecomposed(gMasterDisp++, TAG_GROUND_ALL_RANGE, G_EX_PUSH, G_MTX_MODELVIEW,
                 //                          G_EX_COMPONENT_AUTO, G_EX_COMPONENT_AUTO, G_EX_COMPONENT_AUTO,
