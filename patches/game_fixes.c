@@ -1639,3 +1639,119 @@ RECOMP_PATCH void SectorX_SxSpyborg_Update(SxSpyborg* this) {
     }
 }
 #endif
+
+#if 1
+RECOMP_PATCH s32 FoBase_ExplodeCs(FoBase* this) {
+    Vec3f dest;
+    Vec3f src;
+    Player* player;
+    s32 csState = 0;
+
+    if (this->swork[0] == 1) {
+        FoBase_BurnEffects(this, 8596);
+        player = &gPlayer[0];
+        csState = 1;
+
+        switch (this->swork[1]) {
+            case 0:
+                AUDIO_PLAY_SFX(NA_SE_EARTHQUAKE, this->sfxSource, 0);
+                AUDIO_PLAY_SFX(NA_SE_EXPLOSION_DEMO, this->sfxSource, 0);
+                SEQCMD_STOP_SEQUENCE(SEQ_PLAYER_BGM, 50);
+                SEQCMD_STOP_SEQUENCE(SEQ_PLAYER_FANFARE, 50);
+
+                player->cam.eye.x = this->fwork[4] = this->obj.pos.x;
+                player->cam.eye.y = this->fwork[5] = this->obj.pos.y + 500.0f;
+                player->cam.eye.z = this->fwork[6] = this->obj.pos.z + 4000.0f;
+
+                player->cam.at.x = this->obj.pos.x;
+                player->cam.at.y = this->obj.pos.y;
+                player->cam.at.z = this->obj.pos.z;
+
+                this->fwork[7] = 0.0f;
+                this->fwork[8] = 0.0f;
+                this->fwork[9] = 10.0f;
+
+                this->timer_050 = 1000;
+
+                this->swork[1] = 1;
+                break;
+
+            case 1:
+                if (this->timer_050 == 930) {
+                    this->swork[1] = 2;
+                }
+
+                this->fwork[7] += 0.5f;
+                if (this->fwork[7] >= 360.0f) {
+                    this->fwork[7] = 0.0f;
+                }
+
+                Math_SmoothStepToF(&this->fwork[9], 80.0f, 0.01f, 10000.0f, 0.0f);
+                Math_SmoothStepToF(&this->fwork[4], this->obj.pos.x + 0.0f, 0.02f, 10000.0f, 0.0f);
+                Math_SmoothStepToF(&this->fwork[5], this->obj.pos.y + 500.0f, 0.02f, 10000.0f, 0.0f);
+                Math_SmoothStepToF(&this->fwork[6], this->obj.pos.z + 1500.0f, 0.02f, 10000.0f, 0.0f);
+
+                // @port: Add rumble to this cutscene
+                gControllerRumbleTimers[0] = 60;
+                break;
+
+            case 2:
+                if (this->timer_050 == 870) {
+                    this->swork[1] = 3;
+                }
+
+                this->fwork[7] += 3.0f;
+                if (this->fwork[7] >= 360.0f) {
+                    this->fwork[7] = 0.0f;
+                }
+
+                Math_SmoothStepToF(&this->fwork[4], this->obj.pos.x + 0.0f, 0.02f, 10000.0f, 0.0f);
+                Math_SmoothStepToF(&this->fwork[5], this->obj.pos.y + 1500.0f, 0.02f, 10000.0f, 0.0f);
+                Math_SmoothStepToF(&this->fwork[6], this->obj.pos.z + 1500.0f, 0.02f, 10000.0f, 0.0f);
+
+                // @port: Add rumble to this cutscene
+                gControllerRumbleTimers[0] = 60;
+                break;
+
+            case 3:
+                if (this->timer_050 == 770) {
+                    this->swork[1] = 4;
+                }
+
+                Math_SmoothStepToF(&this->fwork[9], 10.0f, 0.01f, 10000.0f, 0.0f);
+                Math_SmoothStepToF(&this->fwork[4], this->obj.pos.x + 4000.0f, 0.02f, 10000.0f, 0.0f);
+                Math_SmoothStepToF(&this->fwork[5], this->obj.pos.y + 2000.0f, 0.02f, 10000.0f, 0.0f);
+                Math_SmoothStepToF(&this->fwork[6], this->obj.pos.z + 1500.0f, 0.02f, 10000.0f, 0.0f);
+                break;
+
+            case 4:
+                csState = 2;
+                break;
+        }
+
+        if (this->swork[1] < 4) {
+            src.x = this->fwork[4] - this->obj.pos.x;
+            src.y = this->fwork[5] - this->obj.pos.y;
+            src.z = this->fwork[6] - this->obj.pos.z;
+
+            Matrix_Translate(gCalcMatrix, this->obj.pos.x, this->obj.pos.y, this->obj.pos.z, MTXF_NEW);
+            Matrix_RotateY(gCalcMatrix, M_DTOR * this->fwork[7], MTXF_APPLY);
+            Matrix_RotateX(gCalcMatrix, M_DTOR * this->fwork[8], MTXF_APPLY);
+            Matrix_MultVec3f(gCalcMatrix, &src, &dest);
+
+            player->cam.eye.x = dest.x;
+            player->cam.eye.y = dest.y;
+            player->cam.eye.z = dest.z;
+
+            player->cam.at.x = this->obj.pos.x;
+            player->cam.at.y = this->obj.pos.x;
+            player->cam.at.z = this->obj.pos.x;
+
+            player->cam.at.x += COS_DEG(this->timer_050 * 60.0f) * this->fwork[9];
+            player->cam.at.y += SIN_DEG(this->timer_050 * 179.0f) * this->fwork[9];
+        }
+    }
+
+    return csState;
+}
+#endif

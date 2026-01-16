@@ -220,6 +220,11 @@ RECOMP_PATCH void ActorCutscene_Draw(ActorCutscene* this) {
             gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, this->iwork[0]);
             gDPSetEnvColor(gMasterDisp++, 255, 255, 00, this->iwork[0]);
             gSPDisplayList(gMasterDisp++, aOrbDL);
+
+            // @recomp: Add rumble to this explosion
+            if (gCsFrameCount == 100) {
+                gControllerRumbleTimers[0] = 4;
+            }
             break;
 
         case ACTOR_CS_COMMANDER:
