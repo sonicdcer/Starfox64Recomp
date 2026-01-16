@@ -218,6 +218,14 @@ RECOMP_PATCH void Map_Planet_Draw(PlanetId planetId) __attribute__((optnone)) {
                 gEXMatrixGroupDecomposedNormal(gMasterDisp++, TAG_VENOM_CLOUD_1, G_EX_PUSH, G_MTX_MODELVIEW,
                                                G_EX_EDIT_ALLOW);
                 Map_VenomCloud_Draw(&D_menu_801CEEBC, +0.1f, 3.1f);
+
+                // @recomp Pop the transform id.
+                gEXPopMatrixGroup(gMasterDisp++, G_MTX_MODELVIEW);
+
+                // @recomp Tag the transform.
+                gEXMatrixGroupDecomposedNormal(gMasterDisp++, TAG_VENOM_CLOUD_1 | 0x10000, G_EX_PUSH, G_MTX_MODELVIEW,
+                                               G_EX_EDIT_ALLOW);
+
                 Map_VenomCloud_Draw(&D_menu_801CEEC0, -0.1f, 2.9f);
 
                 // @recomp Pop the transform id.
@@ -260,7 +268,8 @@ RECOMP_PATCH void Map_Planet_Draw(PlanetId planetId) __attribute__((optnone)) {
             gEXMatrixGroupDecomposed(gMasterDisp++, (TAG_MEDAL + planetId), G_EX_PUSH, G_MTX_MODELVIEW,
                                      G_EX_COMPONENT_AUTO, G_EX_COMPONENT_AUTO, G_EX_COMPONENT_AUTO,
                                      G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_SKIP,
-                                     G_EX_COMPONENT_INTERPOLATE, G_EX_ORDER_AUTO, G_EX_EDIT_ALLOW, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_SKIP);
+                                     G_EX_COMPONENT_INTERPOLATE, G_EX_ORDER_AUTO, G_EX_EDIT_ALLOW, G_EX_COMPONENT_SKIP,
+                                     G_EX_COMPONENT_SKIP);
 
             Map_PlanetMedal_Draw(planetId);
             // @recomp Pop the transform id.
@@ -453,6 +462,10 @@ RECOMP_PATCH void Map_MeteoMeteors_Draw(void) {
 
         if ((gGameFrameCount & mask) != 0) {
             for (i = 0; i < ARRAY_COUNT(sMapMeteors); i++) {
+                // @recomp Tag the transform.
+                gEXMatrixGroupDecomposedNormal(gMasterDisp++, TAG_PLANET_METEOR + i, G_EX_PUSH, G_MTX_MODELVIEW,
+                                               G_EX_EDIT_ALLOW);
+
                 Matrix_Push(&gGfxMatrix);
 
                 Matrix_RotateY(gGfxMatrix, M_DTOR * sMapMeteors[i].angle, MTXF_APPLY);
@@ -464,10 +477,6 @@ RECOMP_PATCH void Map_MeteoMeteors_Draw(void) {
                 Matrix_Scale(gGfxMatrix, sMapMeteors[i].scale, sMapMeteors[i].scale, sMapMeteors[i].scale, MTXF_APPLY);
 
                 Matrix_SetGfxMtx(&gMasterDisp);
-
-                // @recomp Tag the transform.
-                gEXMatrixGroupDecomposedNormal(gMasterDisp++, TAG_PLANET_METEOR + i, G_EX_PUSH, G_MTX_MODELVIEW,
-                                               G_EX_EDIT_ALLOW);
 
                 gSPDisplayList(gMasterDisp++, sMapPlanets[PLANET_METEO]);
 
@@ -570,7 +579,8 @@ RECOMP_PATCH void Map_PlanetExplosions_Draw(s32 planetId, PlanetExplosions explo
         gEXMatrixGroupDecomposed(gMasterDisp++, TAG_CORNERIA_EXPLOSIONS + i, G_EX_PUSH, G_MTX_MODELVIEW,
                                  G_EX_COMPONENT_AUTO, G_EX_COMPONENT_AUTO, G_EX_COMPONENT_AUTO,
                                  G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_SKIP,
-                                 G_EX_COMPONENT_INTERPOLATE, G_EX_ORDER_AUTO, G_EX_EDIT_ALLOW, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_SKIP);
+                                 G_EX_COMPONENT_INTERPOLATE, G_EX_ORDER_AUTO, G_EX_EDIT_ALLOW, G_EX_COMPONENT_SKIP,
+                                 G_EX_COMPONENT_SKIP);
 
         Matrix_Push(&gGfxMatrix);
 
@@ -626,10 +636,11 @@ RECOMP_PATCH void Map_Area6Ships_Draw(void) {
     dest.z = 0.0f;
 
     if ((gGameFrameCount & mask) != 0) {
-
-        // @recomp Tag the transform.
-        gEXMatrixGroupDecomposedNormal(gMasterDisp++, TAG_AREA6_SHIPS, G_EX_PUSH, G_MTX_MODELVIEW, G_EX_EDIT_ALLOW);
         for (i = 0; i < ARRAY_COUNT(sMapArea6Ships); i++) {
+            // @recomp Tag the transform.
+            gEXMatrixGroupDecomposedNormal(gMasterDisp++, TAG_AREA6_SHIPS + i, G_EX_PUSH, G_MTX_MODELVIEW,
+                                           G_EX_EDIT_ALLOW);
+
             Matrix_Push(&gGfxMatrix);
 
             Matrix_RotateY(gGfxMatrix, M_DTOR * sMapArea6Ships[i].angle, MTXF_APPLY);
@@ -666,10 +677,10 @@ RECOMP_PATCH void Map_Area6Ships_Draw(void) {
             gSPDisplayList(gMasterDisp++, aMapArea6ShipDL);
 
             Matrix_Pop(&gGfxMatrix);
-        }
 
-        // @recomp Pop the transform id.
-        gEXPopMatrixGroup(gMasterDisp++, G_MTX_MODELVIEW);
+            // @recomp Pop the transform id.
+            gEXPopMatrixGroup(gMasterDisp++, G_MTX_MODELVIEW);
+        }
     }
 }
 
@@ -694,6 +705,14 @@ RECOMP_PATCH void Map_Arwing_Draw(s32 index) {
     } else {
         RCP_SetupDL(&gMasterDisp, SETUPDL_46);
         gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 255, D_menu_801CEEA8);
+    }
+
+    if (sPaths[index].unk_14 == 2) {
+        // @recomp Tag the transform.
+        gEXMatrixGroupDecomposedSkipAll(gMasterDisp++, TAG_ARWING, G_EX_PUSH, G_MTX_MODELVIEW, G_EX_EDIT_ALLOW);
+    } else {
+        // @recomp Tag the transform.
+        gEXMatrixGroupDecomposedNormal(gMasterDisp++, TAG_ARWING, G_EX_PUSH, G_MTX_MODELVIEW, G_EX_EDIT_ALLOW);
     }
 
     Matrix_Push(&gGfxMatrix);
@@ -730,20 +749,13 @@ RECOMP_PATCH void Map_Arwing_Draw(s32 index) {
     dirZ = dest.z;
 
     Lights_SetOneLight(&gMasterDisp, dirX, dirY, dirZ, 50, 50, 40, 0, 0, 0);
-    if (sPaths[index].unk_14 == 2) {
-        // @recomp Tag the transform.
-        gEXMatrixGroupDecomposedSkipAll(gMasterDisp++, TAG_ARWING, G_EX_PUSH, G_MTX_MODELVIEW, G_EX_EDIT_ALLOW);
-    } else {
-        // @recomp Tag the transform.
-        gEXMatrixGroupDecomposedNormal(gMasterDisp++, TAG_ARWING, G_EX_PUSH, G_MTX_MODELVIEW, G_EX_EDIT_ALLOW);
-    }
 
     gSPDisplayList(gMasterDisp++, aMapArwingDL);
 
+    Matrix_Pop(&gGfxMatrix);
+
     // @recomp Pop the transform id.
     gEXPopMatrixGroup(gMasterDisp++, G_MTX_MODELVIEW);
-
-    Matrix_Pop(&gGfxMatrix);
 }
 
 RECOMP_PATCH void Map_PathPlanet_Draw(s32 missionIdx, f32 x, f32 y, PlanetId planetId) __attribute__((optnone)) {

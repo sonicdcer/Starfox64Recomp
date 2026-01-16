@@ -5,8 +5,7 @@
  *
  * Animation_DrawSkeleton + peers: Tags interpolated matrices, used for most skeletons.
  * Animation_DrawSkeletonOriginal: Original function without tagging, RT64 handles matching, currently used in
- * Andross_AndPassage_Draw . Animation_DrawSkeleton_SkipInterpolation: Interpolation is skipped, currently used for the
- * ending running characters.
+ * Andross_AndPassage_Draw . Animation_DrawSkeleton_SkipInterpolation: Interpolation is skipped, currently unused.
  */
 
 #if 1 // Global Scope
