@@ -143,11 +143,13 @@ RECOMP_PATCH void Display_Update(void) {
 
     bool bigJump = !should_interpolate_perspective(&gPlayCamEye, &gPlayCamAt);
 
+#if PAUSE_SKIP_INTERPOLATION == 1
     // @recomp: Force interpolation camera skip if we're transitioning to or from a pause state.
     if (((prevPlayState == PLAY_PAUSE) && (gPlayState == PLAY_UPDATE)) ||
         ((prevPlayState == PLAY_UPDATE) && (gPlayState == PLAY_PAUSE))) {
         bigJump = true;
     }
+#endif
 
     if (bigJump) {
         // Skip interpolation for this frame.

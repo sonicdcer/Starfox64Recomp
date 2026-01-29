@@ -71,4 +71,5 @@
 // Settings
 #define ENDING_SKIP_INTERPOLATION 0
 #define ENDING_BORDERS 1
+#define PAUSE_SKIP_INTERPOLATION 1
 #endif
