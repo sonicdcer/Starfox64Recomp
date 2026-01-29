@@ -491,7 +491,7 @@ RECOMP_PATCH void Map_MeteoMeteors_Draw(void) {
 
 // Workaround to fix compiler mips generation (Thanks clang...)
 s32 checkIfPlanetIdNotEq9(s32 planetId) __attribute__((optnone)) {
-    if (planetId != 9) {
+    if (planetId != PLANET_CORNERIA) {
         return 5;
     } else {
         return 10;
@@ -576,7 +576,7 @@ RECOMP_PATCH void Map_PlanetExplosions_Draw(s32 planetId, PlanetExplosions explo
 
         gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 200, 200, D_menu_801CEBD0[explosionIdx][i]);
 
-        gEXMatrixGroupDecomposed(gMasterDisp++, TAG_CORNERIA_EXPLOSIONS + i, G_EX_PUSH, G_MTX_MODELVIEW,
+        gEXMatrixGroupDecomposed(gMasterDisp++, TAG_CORNERIA_EXPLOSIONS + i | planetId << 16, G_EX_PUSH, G_MTX_MODELVIEW,
                                  G_EX_COMPONENT_AUTO, G_EX_COMPONENT_AUTO, G_EX_COMPONENT_AUTO,
                                  G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_SKIP,
                                  G_EX_COMPONENT_INTERPOLATE, G_EX_ORDER_AUTO, G_EX_EDIT_ALLOW, G_EX_COMPONENT_SKIP,
