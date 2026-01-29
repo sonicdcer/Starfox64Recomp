@@ -1332,10 +1332,6 @@ void Solar_SoFlare_Spawn3(f32, f32, f32, f32);
 extern Gfx aSoLava1DL_copy[];
 extern Gfx aSoLava2DL_copy[];
 
-u32 cob1_uls = 0, cob1_lrs = 255;
-u32 sol_ult = 0, sol_lrt = 127;
-u32 met_ult = 0, met_lrt = 127;
-
 // for Texture scroll debugging
 #if 0
 extern int gUvOn;
@@ -1403,11 +1399,7 @@ RECOMP_PATCH void Play_UpdateLevel(void) {
         case LEVEL_METEO:
             // @recomp: use UV Scrolling
             // Lib_Texture_Scroll(aMeteoWarpTex, 8, 8, 1);
-            met_ult = (met_ult + 4) & 0x1F;
-            met_lrt = (met_ult + 31) & 0xFFF;
-            Gfx* cmd = (Gfx*) SEGMENTED_TO_VIRTUAL((void*) ((Gfx*) (aMeteoWarpDL + 2)));
-            cmd->words.w0 = (G_SETTILESIZE << 24) | met_ult;
-            cmd->words.w1 = (cmd->words.w1 & 0x0701F000) | met_lrt;
+            Gfx_Texture_UV_Scroll(aMeteoWarpDL + 2, 8, 8, 1, 1);
 
             /* fallthrough */
         case LEVEL_SECTOR_X:
@@ -1432,19 +1424,17 @@ RECOMP_PATCH void Play_UpdateLevel(void) {
             break;
 
         case LEVEL_CORNERIA:
+            // Water waving effect
             HUD_Texture_Wave(D_CO_603EB38, D_CO_6028A60);
-            if ((gGameFrameCount % 2) != 0) {
-#if 0
-                // @recomp: "GOODLUCK!" with UV scrolling
-                cob1_uls = (cob1_uls - 4) & 0xFF;
-                cob1_lrs = (cob1_uls + 255) & 0xFFF;
-                Gfx* cmd = (Gfx*) SEGMENTED_TO_VIRTUAL((void*) ((Gfx*) (aCoBuilding1DL + 36)));
-                cmd->words.w0 = (G_SETTILESIZE << 24) | (cob1_uls << 12);
-                cmd->words.w1 = (cmd->words.w1 & 0x0700007F) | (cob1_lrs << 12);
+
+            // @recomp: "GOODLUCK!" with UV scrolling
+#if 1
+            Gfx_Texture_UV_Scroll(aCoBuilding1DL + 36, 64, 32, 3, 1);
 #else
+            if ((gGameFrameCount % 2) != 0) {
                 Lib_Texture_Scroll(D_CO_600CBD8, 64, 32, 3);
-#endif
             }
+#endif
             break;
 
         case LEVEL_AQUAS:
@@ -1456,14 +1446,22 @@ RECOMP_PATCH void Play_UpdateLevel(void) {
 
             // @recomp: Use UV texture scrolling
             for ((void) gPathTexScroll; gPathTexScroll >= 10.0f; gPathTexScroll -= 10.0f) {
-                sol_ult = (sol_ult + 4) & 0x7F;
+                // sol_ult = (sol_ult + 4) & 0x7F;
                 // Lib_Texture_Scroll(aSoLavaTex, 32, 32, 1);
+                Gfx_Texture_UV_Scroll(aSoLava1DL + 2, 32, 32, 1, 1);
+                Gfx_Texture_UV_Scroll(aSoLava2DL + 2, 32, 32, 1, 1);
+                Gfx_Texture_UV_Scroll(aSoLava1DL_copy + 2, 32, 32, 1, 0);
+                Gfx_Texture_UV_Scroll(aSoLava2DL_copy + 2, 32, 32, 1, 0);
             }
             if (gPlayer[0].state == PLAYERSTATE_NEXT) {
-                sol_ult = (sol_ult + 4) & 0x7F;
+                // sol_ult = (sol_ult + 4) & 0x7F;
                 // Lib_Texture_Scroll(aSoLavaTex, 32, 32, 1);
+                Gfx_Texture_UV_Scroll(aSoLava1DL + 2, 32, 32, 1, 1);
+                Gfx_Texture_UV_Scroll(aSoLava2DL + 2, 32, 32, 1, 1);
+                Gfx_Texture_UV_Scroll(aSoLava1DL_copy + 2, 32, 32, 1, 0);
+                Gfx_Texture_UV_Scroll(aSoLava2DL_copy + 2, 32, 32, 1, 0);
             }
-
+#if 0
             {
                 sol_lrt = (sol_ult + 127) & 0xFFF;
                 Gfx* cmd1 = (Gfx*) SEGMENTED_TO_VIRTUAL((void*) ((Gfx*) (aSoLava1DL + 2)));
@@ -1486,7 +1484,7 @@ RECOMP_PATCH void Play_UpdateLevel(void) {
                 cmd2->words.w0 = words_w0;
                 cmd2->words.w1 = words_w1;
             }
-
+#endif
             Lib_Texture_Mottle(aSoBackdropTex, D_SO_6020F60, 3);
 
             if (gPlayer[0].pos.y > 600.0f) {
@@ -1550,35 +1548,18 @@ RECOMP_PATCH void Play_UpdateLevel(void) {
 
             // @recomp: Use UV texture scrolling
             for ((void) gPathTexScroll; gPathTexScroll >= 20.0f; gPathTexScroll -= 20.0f) {
-                sol_ult = (sol_ult + 4) & 0x7F;
                 // Lib_Texture_Scroll(D_ZO_602C2CC, 32, 32, 1);
+                Gfx_Texture_UV_Scroll(aZoWater1DL + 2, 32, 32, 1, 1);
+                Gfx_Texture_UV_Scroll(aZoWater2DL + 2, 32, 32, 1, 1);
+                Gfx_Texture_UV_Scroll(aZoWater1DL_copy + 2, 32, 32, 1, 0);
+                Gfx_Texture_UV_Scroll(aZoWater2DL_copy + 2, 32, 32, 1, 0);
             }
             if (gPlayer[0].state == PLAYERSTATE_NEXT) {
-                sol_ult = (sol_ult + 4) & 0x7F;
                 // Lib_Texture_Scroll(D_ZO_602C2CC, 32, 32, 1);
-            }
-
-            {
-                sol_lrt = (sol_ult + 127) & 0xFFF;
-                Gfx* cmd1 = (Gfx*) SEGMENTED_TO_VIRTUAL((void*) ((Gfx*) (aZoWater1DL + 2)));
-                Gfx* cmd2 = (Gfx*) SEGMENTED_TO_VIRTUAL((void*) ((Gfx*) (aZoWater2DL + 2)));
-                u32 words_w0 = (G_SETTILESIZE << 24) | sol_ult;
-                u32 words_w1 = (cmd1->words.w1 & 0x0707F000) | sol_lrt;
-                cmd1->words.w0 = words_w0;
-                cmd1->words.w1 = words_w1;
-                cmd2->words.w0 = words_w0;
-                cmd2->words.w1 = words_w1;
-            }
-            {
-                sol_lrt = (sol_ult + 127) & 0xFFF;
-                Gfx* cmd1 = (Gfx*) ((void*) ((Gfx*) (aZoWater1DL_copy + 2)));
-                Gfx* cmd2 = (Gfx*) ((void*) ((Gfx*) (aZoWater2DL_copy + 2)));
-                u32 words_w0 = (G_SETTILESIZE << 24) | sol_ult;
-                u32 words_w1 = (cmd1->words.w1 & 0x0707F000) | sol_lrt;
-                cmd1->words.w0 = words_w0;
-                cmd1->words.w1 = words_w1;
-                cmd2->words.w0 = words_w0;
-                cmd2->words.w1 = words_w1;
+                Gfx_Texture_UV_Scroll(aZoWater1DL + 2, 32, 32, 1, 1);
+                Gfx_Texture_UV_Scroll(aZoWater2DL + 2, 32, 32, 1, 1);
+                Gfx_Texture_UV_Scroll(aZoWater1DL_copy + 2, 32, 32, 1, 0);
+                Gfx_Texture_UV_Scroll(aZoWater2DL_copy + 2, 32, 32, 1, 0);
             }
 
             HUD_Texture_Wave(D_ZO_602C2CC, aZoWaterTex);

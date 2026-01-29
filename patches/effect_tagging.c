@@ -65,7 +65,6 @@ RECOMP_PATCH void TexturedLine_Draw(void) {
     }
 }
 
-u32 a6_ult = 0, a6_lrt = 63;
 extern Gfx D_A6_6012550[];
 // extern int gUvOn; /* Debug */
 
@@ -167,11 +166,7 @@ RECOMP_PATCH void Effect_Effect395_Draw(Effect395* this) {
             if (gPlayState != PLAY_PAUSE) {
                 //    Lib_Texture_Scroll(D_A6_6012840, 16, 16, 0);
                 // @Recomp use UV scrolling instead of CPU
-                a6_ult = (a6_ult - 4) & 0x3F;
-                a6_lrt = (a6_ult + 63) & 0xFFF;
-                Gfx* cmd = (Gfx*) SEGMENTED_TO_VIRTUAL((void*) ((Gfx*) (D_A6_6012550 + 6)));
-                cmd->words.w0 = (G_SETTILESIZE << 24) | a6_ult;
-                cmd->words.w1 = (cmd->words.w1 & 0x0703F000) | a6_lrt;
+                Gfx_Texture_UV_Scroll(D_A6_6012550 + 6, 16, 16, 0, 1);
             }
             RCP_SetupDL(&gMasterDisp, SETUPDL_53);
             Matrix_Scale(gGfxMatrix, this->orient.x, this->orient.y, this->orient.z, MTXF_APPLY);
@@ -1506,15 +1501,10 @@ RECOMP_PATCH void Effect_ElectricArc_Draw(EffectElectricArc* this) {
 
 // Texture scrolling for explosions
 #if 1
-u32 e383_ult = 0, e383_lrt = 127;
 RECOMP_PATCH void Effect_Effect383_Update(Effect383* this) {
     //    Lib_Texture_Scroll(D_10190C0, 16, 32, 0);
     // @Recomp use UV tex scrolling instead
-    e383_ult = (e383_ult - 4) & 0x7F;
-    e383_lrt = (e383_ult + 127) & 0xFFF;
-    Gfx* cmd = (Gfx*) SEGMENTED_TO_VIRTUAL((void*) ((Gfx*) (D_10182C0 + 6)));
-    cmd->words.w0 = (G_SETTILESIZE << 24) | e383_ult;
-    cmd->words.w1 = (cmd->words.w1 & 0x0703F000) | e383_lrt;
+    Gfx_Texture_UV_Scroll(D_10182C0 + 6, 16, 32, 0, 1);
 
     gGroundClipMode = 2;
     this->obj.rot.y += 1.0f;
@@ -1548,21 +1538,13 @@ RECOMP_PATCH void Effect_Effect383_Update(Effect383* this) {
 #if 1
 void Obj54_8006AA3C(f32 xPos, f32 yPos, f32 zPos);
 
-u32 wf_ult = 0, wf_lrt = 127;
-
 RECOMP_PATCH void CoWaterfall_Update(CoWaterfall* this) {
     Vec3f dest;
     Vec3f src;
 
     // Lib_Texture_Scroll(aCoWaterfallTex2, 32, 32, 1);
     // @Recomp use UV tex scrolling instead
-    wf_ult = (wf_ult + 4) & 0x7F;
-    wf_lrt = (wf_ult + 127) & 0xFFF;
-    Gfx* cmd1 = (Gfx*) SEGMENTED_TO_VIRTUAL((void*) ((Gfx*) (aCoWaterfallDL + 26)));
-    u32 words_w0 = (G_SETTILESIZE << 24) | wf_ult;
-    u32 words_w1 = (cmd1->words.w1 & 0x0707F000) | wf_lrt;
-    cmd1->words.w0 = words_w0;
-    cmd1->words.w1 = words_w1;
+    Gfx_Texture_UV_Scroll(aCoWaterfallDL + 26, 32, 32, 1, 1);
 
     if ((gGameFrameCount % 4) == 0) {
         Matrix_RotateY(gCalcMatrix, this->obj.rot.y * M_DTOR, MTXF_NEW);
@@ -1581,7 +1563,6 @@ RECOMP_PATCH void CoWaterfall_Update(CoWaterfall* this) {
 #if 1
 void func_tank_80043280(u16* text0, u16* text1, f32 zRot);
 void func_tank_80043B18(Player* player);
-u32 lm6_ult = 0, lm6_lrt = 0;
 
 #if 0
 extern int gUvOn;
@@ -1724,33 +1705,11 @@ RECOMP_PATCH void func_tank_80044868(Player* player) {
     if (player->baseSpeed > 0.0f) {
         // Lib_Texture_Scroll(aLandmasterModelTex6, 32, 32, 0);
         // @recomp: UV Scrolling
-        lm6_ult = (lm6_ult - 4) & 0x7F;
-        lm6_lrt = (lm6_ult + 127) & 0xFFF;
-        // aLandmasterModelDL
-        // + 92
-        // + 141
-        // + 150
-        // + 177
-        Gfx* cmd = (Gfx*) SEGMENTED_TO_VIRTUAL((void*) ((Gfx*) (aLandmasterModelDL + 92)));
-        u32 cmd_words_w0, cmd_words_w1;
-        // upper left coords
-        cmd_words_w0 = (G_SETTILESIZE << 24) | lm6_ult;
-        // lower right coords
-        cmd_words_w1 = (cmd->words.w1 & 0x0707F000) | lm6_lrt;
-        cmd->words.w0 = cmd_words_w0;
-        cmd->words.w1 = cmd_words_w1;
+        Gfx_Texture_UV_Scroll(aLandmasterModelDL + 92, 32, 32, 0, 1);
+        Gfx_Texture_UV_Scroll(aLandmasterModelDL + 141, 32, 32, 0, 1);
+        Gfx_Texture_UV_Scroll(aLandmasterModelDL + 150, 32, 32, 0, 1);
+        Gfx_Texture_UV_Scroll(aLandmasterModelDL + 177, 32, 32, 0, 1);
 
-        cmd = (Gfx*) SEGMENTED_TO_VIRTUAL((void*) ((Gfx*) (aLandmasterModelDL + 141)));
-        cmd->words.w0 = cmd_words_w0;
-        cmd->words.w1 = cmd_words_w1;
-
-        cmd = (Gfx*) SEGMENTED_TO_VIRTUAL((void*) ((Gfx*) (aLandmasterModelDL + 150)));
-        cmd->words.w0 = cmd_words_w0;
-        cmd->words.w1 = cmd_words_w1;
-
-        cmd = (Gfx*) SEGMENTED_TO_VIRTUAL((void*) ((Gfx*) (aLandmasterModelDL + 177)));
-        cmd->words.w0 = cmd_words_w0;
-        cmd->words.w1 = cmd_words_w1;
         if ((gCurrentLevel == LEVEL_TITANIA) && !gBossActive) {
             func_tank_80043280(aLandmasterModelTex4, D_TI_6009BB8, gGameFrameCount * -55.0f);
         }
@@ -1762,33 +1721,10 @@ RECOMP_PATCH void func_tank_80044868(Player* player) {
     if (player->baseSpeed > 10.0f) {
         // Lib_Texture_Scroll(aLandmasterModelTex6, 32, 32, 0);
         // @recomp: UV Scrolling
-        lm6_ult = (lm6_ult - 4) & 0x7F;
-        lm6_lrt = (lm6_ult + 127) & 0xFFF;
-        // aLandmasterModelDL
-        // + 92
-        // + 141
-        // + 150
-        // + 177
-        Gfx* cmd = (Gfx*) SEGMENTED_TO_VIRTUAL((void*) ((Gfx*) (aLandmasterModelDL + 92)));
-        u32 cmd_words_w0, cmd_words_w1;
-        // upper left coords
-        cmd_words_w0 = (G_SETTILESIZE << 24) | lm6_ult;
-        // lower right coords
-        cmd_words_w1 = (cmd->words.w1 & 0x0707F000) | lm6_lrt;
-        cmd->words.w0 = cmd_words_w0;
-        cmd->words.w1 = cmd_words_w1;
-
-        cmd = (Gfx*) SEGMENTED_TO_VIRTUAL((void*) ((Gfx*) (aLandmasterModelDL + 141)));
-        cmd->words.w0 = cmd_words_w0;
-        cmd->words.w1 = cmd_words_w1;
-
-        cmd = (Gfx*) SEGMENTED_TO_VIRTUAL((void*) ((Gfx*) (aLandmasterModelDL + 150)));
-        cmd->words.w0 = cmd_words_w0;
-        cmd->words.w1 = cmd_words_w1;
-
-        cmd = (Gfx*) SEGMENTED_TO_VIRTUAL((void*) ((Gfx*) (aLandmasterModelDL + 177)));
-        cmd->words.w0 = cmd_words_w0;
-        cmd->words.w1 = cmd_words_w1;
+        Gfx_Texture_UV_Scroll(aLandmasterModelDL + 92, 32, 32, 0, 1);
+        Gfx_Texture_UV_Scroll(aLandmasterModelDL + 141, 32, 32, 0, 1);
+        Gfx_Texture_UV_Scroll(aLandmasterModelDL + 150, 32, 32, 0, 1);
+        Gfx_Texture_UV_Scroll(aLandmasterModelDL + 177, 32, 32, 0, 1);
 
         if ((gCurrentLevel == LEVEL_TITANIA) && !gBossActive) {
             func_tank_80043280(aLandmasterModelTex4, D_TI_6009BB8, gGameFrameCount * -55.0f);
@@ -1804,8 +1740,6 @@ void Corneria_Garuda_HandleDamage(Actor* this);
 // Garuda 1 texture scrolling
 #if 1
 s32 Corneria_CoGaruda1_CheckCollision(CoGaruda1* this);
-
-u32 garuda1_ult = 0, garuda1_lrt = 63;
 
 RECOMP_PATCH void Corneria_CoGaruda1_Update(CoGaruda1* this) {
     Vec3f frameTable[20];
@@ -1828,14 +1762,7 @@ RECOMP_PATCH void Corneria_CoGaruda1_Update(CoGaruda1* this) {
 
             // @recomp: UV texture scrolling
             // Lib_Texture_Scroll(aCoGarudaTracksTex, 16, 16, 1);
-            garuda1_ult = (garuda1_ult + 4) & 0x3F;
-            garuda1_lrt = (garuda1_ult + 63) & 0xFFF;
-            // gfx+59
-            Gfx* cmd = (Gfx*) SEGMENTED_TO_VIRTUAL((void*) ((Gfx*) (ast_corneria_seg6_gfx_31ED0 + 59)));
-            // upper left coords
-            cmd->words.w0 = (G_SETTILESIZE << 24) | garuda1_ult;
-            // lower right coords
-            cmd->words.w1 = (cmd->words.w1 & 0x0703F000) | garuda1_lrt;
+            Gfx_Texture_UV_Scroll(ast_corneria_seg6_gfx_31ED0 + 59, 16, 16, 1, 1);
 
             this->animFrame = 0;
 
@@ -1872,8 +1799,6 @@ RECOMP_PATCH void Corneria_CoGaruda1_Update(CoGaruda1* this) {
 #endif
 
 #if 1
-u32 garuda2_ult = 0, garuda2_lrt = 63;
-
 RECOMP_PATCH void Corneria_CoGaruda2_Update(CoGaruda2* this) {
     Vec3f frameTable[20];
     Vec3f src;
@@ -1903,17 +1828,9 @@ RECOMP_PATCH void Corneria_CoGaruda2_Update(CoGaruda2* this) {
         case 1:
             this->fwork[0] = -10.0f;
 
-            {
-                // Lib_Texture_Scroll(aCoGarudaTracksTex, 16, 16, 1);
-                garuda2_ult = (garuda2_ult - 4) & 0x3F;
-                garuda2_lrt = (garuda2_ult + 63) & 0xFFF;
-                // gfx+59
-                Gfx* cmd = (Gfx*) SEGMENTED_TO_VIRTUAL((void*) ((Gfx*) (ast_corneria_seg6_gfx_31ED0 + 59)));
-                // upper left coords
-                cmd->words.w0 = (G_SETTILESIZE << 24) | garuda2_ult;
-                // lower right coords
-                cmd->words.w1 = (cmd->words.w1 & 0x0703F000) | garuda2_lrt;
-            }
+            // @recomp: UV texture scrolling
+            // Lib_Texture_Scroll(aCoGarudaTracksTex, 16, 16, 1);
+            Gfx_Texture_UV_Scroll(ast_corneria_seg6_gfx_31ED0 + 59, 16, 16, 1, 1);
 
             if (this->timer_0BC == 0) {
                 this->state = 2;
@@ -1924,17 +1841,9 @@ RECOMP_PATCH void Corneria_CoGaruda2_Update(CoGaruda2* this) {
         case 2:
             this->fwork[0] = -10.0f;
 
-            {
-                // Lib_Texture_Scroll(aCoGarudaTracksTex, 16, 16, 1);
-                garuda2_ult = (garuda2_ult - 4) & 0x3F;
-                garuda2_lrt = (garuda2_ult + 63) & 0xFFF;
-                // gfx+59
-                Gfx* cmd = (Gfx*) SEGMENTED_TO_VIRTUAL((void*) ((Gfx*) (ast_corneria_seg6_gfx_31ED0 + 59)));
-                // upper left coords
-                cmd->words.w0 = (G_SETTILESIZE << 24) | garuda2_ult;
-                // lower right coords
-                cmd->words.w1 = (cmd->words.w1 & 0x0703F000) | garuda2_lrt;
-            }
+            // @recomp: UV texture scrolling
+            // Lib_Texture_Scroll(aCoGarudaTracksTex, 16, 16, 1);
+            Gfx_Texture_UV_Scroll(ast_corneria_seg6_gfx_31ED0 + 59, 16, 16, 1, 1);
 
             this->animFrame++;
 
@@ -1973,8 +1882,6 @@ RECOMP_PATCH void Corneria_CoGaruda2_Update(CoGaruda2* this) {
 #endif
 
 #if 1
-u32 garuda3_ult = 0, garuda3_lrt = 63;
-
 RECOMP_PATCH void Corneria_CoGaruda3_Update(CoGaruda3* this) {
     s32 pad;
     Vec3f frameTable[20];
@@ -1998,17 +1905,11 @@ RECOMP_PATCH void Corneria_CoGaruda3_Update(CoGaruda3* this) {
         case 1:
             this->fwork[0] = 5.0f;
             this->fwork[1] += 5.0f;
-            {
-                // Lib_Texture_Scroll(aCoGarudaTracksTex, 16, 16, 1);
-                garuda3_ult = (garuda3_ult - 4) & 0x3F;
-                garuda3_lrt = (garuda3_ult + 63) & 0xFFF;
-                // gfx+59
-                Gfx* cmd = (Gfx*) SEGMENTED_TO_VIRTUAL((void*) ((Gfx*) (ast_corneria_seg6_gfx_31ED0 + 59)));
-                // upper left coords
-                cmd->words.w0 = (G_SETTILESIZE << 24) | garuda3_ult;
-                // lower right coords
-                cmd->words.w1 = (cmd->words.w1 & 0x0703F000) | garuda3_lrt;
-            }
+
+            // @recomp: UV texture scrolling
+            // Lib_Texture_Scroll(aCoGarudaTracksTex, 16, 16, 1);
+            Gfx_Texture_UV_Scroll(ast_corneria_seg6_gfx_31ED0 + 59, 16, 16, 1, 1);
+
             this->animFrame++;
             if (this->animFrame >= Animation_GetFrameCount(&aCoGaruda3Anim)) {
                 this->animFrame = 0;
