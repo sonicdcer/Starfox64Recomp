@@ -13,9 +13,9 @@ void Gfx_Texture_UV_Scroll(Gfx* displayList, u16 width, u16 height, s32 mode, bo
     }
 
     if (segmented) {
-        cmd = (Gfx*) SEGMENTED_TO_VIRTUAL((void*) ((Gfx*) displayList));
+        cmd = SEGMENTED_TO_VIRTUAL(displayList);
     } else {
-        cmd = (Gfx*) ((void*) ((Gfx*) displayList));
+        cmd = displayList;
     }
 
     switch (mode) {
