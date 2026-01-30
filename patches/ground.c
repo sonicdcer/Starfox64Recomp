@@ -1446,7 +1446,6 @@ RECOMP_PATCH void Play_UpdateLevel(void) {
 
             // @recomp: Use UV texture scrolling
             for ((void) gPathTexScroll; gPathTexScroll >= 10.0f; gPathTexScroll -= 10.0f) {
-                // sol_ult = (sol_ult + 4) & 0x7F;
                 // Lib_Texture_Scroll(aSoLavaTex, 32, 32, 1);
                 Gfx_Texture_UV_Scroll(aSoLava1DL + 2, 32, 32, 1, 1);
                 Gfx_Texture_UV_Scroll(aSoLava2DL + 2, 32, 32, 1, 1);
@@ -1454,37 +1453,13 @@ RECOMP_PATCH void Play_UpdateLevel(void) {
                 Gfx_Texture_UV_Scroll(aSoLava2DL_copy + 2, 32, 32, 1, 0);
             }
             if (gPlayer[0].state == PLAYERSTATE_NEXT) {
-                // sol_ult = (sol_ult + 4) & 0x7F;
                 // Lib_Texture_Scroll(aSoLavaTex, 32, 32, 1);
                 Gfx_Texture_UV_Scroll(aSoLava1DL + 2, 32, 32, 1, 1);
                 Gfx_Texture_UV_Scroll(aSoLava2DL + 2, 32, 32, 1, 1);
                 Gfx_Texture_UV_Scroll(aSoLava1DL_copy + 2, 32, 32, 1, 0);
                 Gfx_Texture_UV_Scroll(aSoLava2DL_copy + 2, 32, 32, 1, 0);
             }
-#if 0
-            {
-                sol_lrt = (sol_ult + 127) & 0xFFF;
-                Gfx* cmd1 = (Gfx*) SEGMENTED_TO_VIRTUAL((void*) ((Gfx*) (aSoLava1DL + 2)));
-                Gfx* cmd2 = (Gfx*) SEGMENTED_TO_VIRTUAL((void*) ((Gfx*) (aSoLava2DL + 2)));
-                u32 words_w0 = (G_SETTILESIZE << 24) | sol_ult;
-                u32 words_w1 = (cmd1->words.w1 & 0x0707F000) | sol_lrt;
-                cmd1->words.w0 = words_w0;
-                cmd1->words.w1 = words_w1;
-                cmd2->words.w0 = words_w0;
-                cmd2->words.w1 = words_w1;
-            }
-            {
-                sol_lrt = (sol_ult + 127) & 0xFFF;
-                Gfx* cmd1 = (Gfx*) ((void*) ((Gfx*) (aSoLava1DL_copy + 2)));
-                Gfx* cmd2 = (Gfx*) ((void*) ((Gfx*) (aSoLava2DL_copy + 2)));
-                u32 words_w0 = (G_SETTILESIZE << 24) | sol_ult;
-                u32 words_w1 = (cmd1->words.w1 & 0x0707F000) | sol_lrt;
-                cmd1->words.w0 = words_w0;
-                cmd1->words.w1 = words_w1;
-                cmd2->words.w0 = words_w0;
-                cmd2->words.w1 = words_w1;
-            }
-#endif
+
             Lib_Texture_Mottle(aSoBackdropTex, D_SO_6020F60, 3);
 
             if (gPlayer[0].pos.y > 600.0f) {

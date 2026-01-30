@@ -28,7 +28,6 @@ void Gfx_Texture_UV_Scroll(Gfx* displayList, u16 width, u16 height, s32 mode, bo
 
             cmd->words.w0 = (G_SETTILESIZE << 24) | ult;
             cmd->words.w1 = (cmd->words.w1 & 0x0707F000) | lrt;
-
             break;
 
         case 1: // DOWN
@@ -40,7 +39,6 @@ void Gfx_Texture_UV_Scroll(Gfx* displayList, u16 width, u16 height, s32 mode, bo
 
             cmd->words.w0 = (G_SETTILESIZE << 24) | ult;
             cmd->words.w1 = (cmd->words.w1 & 0x0707F000) | lrt;
-
             break;
 
         case 2: // RIGHT
@@ -52,7 +50,6 @@ void Gfx_Texture_UV_Scroll(Gfx* displayList, u16 width, u16 height, s32 mode, bo
 
             cmd->words.w0 = (G_SETTILESIZE << 24) | (uls << 12);
             cmd->words.w1 = (cmd->words.w1 & 0x0700007F) | (lrs << 12);
-
             break;
 
         case 3: // LEFT
