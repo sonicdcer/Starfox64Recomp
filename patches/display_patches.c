@@ -961,23 +961,13 @@ RECOMP_PATCH void Aquas_BlueMarineReticle_Draw(void) {
 }
 
 #if 1
-u32 bolse_ult = 0, bolse_lrt = 63, bolse_uls = 0, bolse_lrs = 63;
-
 RECOMP_PATCH void Bolse_BoBaseShield_Update(BoBaseShield* this) {
     D_i4_801A0530 = 0;
 
     Math_SmoothStepToF(&this->fwork[0], D_BO_801A03DC * 9.0f + 10.0f, 1.0f, 10.0f, 0.0f);
 
     // Lib_Texture_Scroll(aBoBaseShieldTex, 16, 16, 0);
-    bolse_ult = (bolse_ult - 4) & 0x3F;
-    bolse_lrt = (bolse_ult - 63) & 0xFFF;
-    bolse_lrt = (bolse_ult - 63) & 0xFFF;
-    // pointer to the SetTileSize cmd
-    Gfx* cmd = (Gfx*) SEGMENTED_TO_VIRTUAL((void*) ((Gfx*) (aBoBaseShieldDL + 2)));
-    // upper left coords
-    cmd->words.w0 = (G_SETTILESIZE << 24) | (bolse_uls << 12) | bolse_ult;
-    // lower right coords
-    cmd->words.w1 = (cmd->words.w1 & 0x07000000) | (bolse_lrs << 12) | bolse_lrt;
+    Gfx_Texture_UV_Scroll(aBoBaseShieldDL + 2, 16, 16, 0, 1);
 
     switch (this->state) {
         case 2:

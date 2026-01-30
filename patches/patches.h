@@ -145,6 +145,7 @@ f32 __sinf(f32);
 f32 __cosf(f32);
 float sqrtf(float f);
 void Game_InitFullViewport(void);
+void Gfx_Texture_UV_Scroll(Gfx* displayList, u16 width, u16 height, s32 mode, bool segmented);
 void* memcpy2(void* dest, const void* src, size_t n);
 
 #define INCBIN(identifier, filename)         \

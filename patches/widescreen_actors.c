@@ -711,7 +711,7 @@ RECOMP_PATCH void Corneria_LevelStart(Player* player) {
                 peppy->state = 0;
                 slippy->state = 0;
                 falco->obj.pos.y = player->pos.y + 80.0f;
-                // @recomp: adjust Falco's position so he appears from further right
+                // @recomp: adjust Falco's position so he appears from farther right
                 falco->obj.pos.z += 3.0f * 100.0f;
             }
 
