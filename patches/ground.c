@@ -1428,7 +1428,7 @@ RECOMP_PATCH void Play_UpdateLevel(void) {
             HUD_Texture_Wave(D_CO_603EB38, D_CO_6028A60);
 
             // @recomp: "GOODLUCK!" with UV scrolling
-#if 1
+#if 0
             Gfx_Texture_UV_Scroll(aCoBuilding1DL + 36, 64, 32, 3, 1);
 #else
             if ((gGameFrameCount % 2) != 0) {
