@@ -10,8 +10,189 @@ void Title_SetCamUp(f32 xRot, f32 yRot);
 void Title_GetCamRot(f32* xRot, f32* yRot);
 void Title_CsTakeOff_Setup(void);
 void Title_GreatFoxDeckPlatform_Draw(void);
+bool should_interpolate_perspective(Vec3f* eye, Vec3f* at);
 
 extern s32 F_80177D80;
+
+typedef enum TitleCsStates {
+    /* 0 */ TITLE_SCREEN,              // In the Title Screen.
+    /* 1 */ TITLE_GREAT_FOX_TRAVELING, // Close up to the Great Fox while it's traveling to corneria.
+    /* 2 */ TITLE_CS_TEAM_RUNNING,     // Team is running in Great Fox's the passage way before take-off.
+    /* 3 */ TITLE_GREAT_FOX_CLOSE_UP,  // Closing up to the Great Fox before take-off.
+    /* 4 */ TITLE_TAKE_OFF,            // Take-off cutscene.
+    /* 5 */ TITLE_TAKE_OFF_SPACE,      // Arwings coming out of the Great Fox out to space.
+    /* 7 */ TITLE_RANKING = 7          // Show ranking
+} TitleCsStates;
+
+void Title_Ranking_Draw(void);
+void Title_Screen_Draw(void);
+void Title_StarfoxLogo_Draw(void);
+void Title_CopyrightSymbol_Draw(void);
+void Title_Copyright_Draw(void);
+void Title_PressStart_Draw(void);
+void Title_64Logo_Draw(void);
+void Title_CsTeamRunning_Draw(void);
+void Title_Logos_Draw(void);
+void Title_SunGlare_Draw(void);
+void Title_CsGreatFoxTraveling_Draw(void);
+void Title_CsTakeOff_Draw(void);
+void Title_CsGreatFoxCloseUp_Draw(void);
+void Title_CsTakeOffSpace_Draw(void);
+void Title_Matrix_Push(void);
+void Title_TeamName_Draw(void);
+void Title_TitleCard_Draw(void);
+
+extern bool D_menu_801B8348;
+extern bool sDrawTeamName;
+extern s32 D_menu_801B8298;
+bool sSkipInterpolation = 0;
+
+#if 1
+RECOMP_PATCH void Title_Draw(void) {
+    static s32 camSkipTimes;
+
+    if (sSkipInterpolation) {
+        // Skip interpolation for this frame.
+        gEXMatrixGroupSimple(gMasterDisp++, TAG_CAMERA_1, G_EX_NOPUSH, G_MTX_PROJECTION, G_EX_COMPONENT_SKIP,
+                             G_EX_COMPONENT_SKIP, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_INTERPOLATE,
+                             G_EX_ORDER_LINEAR, G_EX_EDIT_NONE, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_SKIP);
+        recomp_printf("CAMERA 1 SKIPED: %d\n", camSkipTimes++);
+        gCamera1Skipped = true;
+        sSkipInterpolation = 0;
+    } else {
+        // Simple interpolation works much better for cameras because they orbit around a focus.
+        gEXMatrixGroupSimple(gMasterDisp++, TAG_CAMERA_1, G_EX_NOPUSH, G_MTX_PROJECTION, G_EX_COMPONENT_INTERPOLATE,
+                             G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE,
+                             G_EX_COMPONENT_INTERPOLATE, G_EX_ORDER_LINEAR, G_EX_EDIT_NONE, G_EX_COMPONENT_SKIP,
+                             G_EX_COMPONENT_SKIP);
+        gCamera1Skipped = false;
+    }
+
+    switch (sCutsceneState) {
+        case TITLE_RANKING:
+            Title_Ranking_Draw();
+            break;
+
+        case TITLE_SCREEN:
+            Title_Matrix_Push();
+            Title_Screen_Draw();
+
+            Matrix_Pop(&gGfxMatrix);
+
+            Title_StarfoxLogo_Draw();
+            Title_CopyrightSymbol_Draw();
+            Title_Copyright_Draw();
+            Title_PressStart_Draw();
+            Title_Matrix_Push();
+            Title_64Logo_Draw();
+
+            Matrix_Pop(&gGfxMatrix);
+            break;
+
+        case TITLE_GREAT_FOX_TRAVELING:
+            if (D_menu_801B8348) {
+                Title_Matrix_Push();
+                Title_CsGreatFoxTraveling_Draw();
+
+                Matrix_Pop(&gGfxMatrix);
+
+                Radio_Draw();
+                Title_TitleCard_Draw();
+            }
+            Title_SunGlare_Draw();
+            Title_Logos_Draw();
+            break;
+
+        case TITLE_CS_TEAM_RUNNING:
+            Title_Matrix_Push();
+            Title_CsTeamRunning_Draw();
+
+            Matrix_Pop(&gGfxMatrix);
+
+            if (sDrawTeamName) {
+                Title_TeamName_Draw();
+            }
+            break;
+
+        case TITLE_GREAT_FOX_CLOSE_UP:
+            Title_Matrix_Push();
+
+            Title_CsGreatFoxCloseUp_Draw();
+
+            Matrix_Pop(&gGfxMatrix);
+            break;
+
+        case TITLE_TAKE_OFF:
+            Title_Matrix_Push();
+            Title_CsTakeOff_Draw();
+
+            Matrix_Pop(&gGfxMatrix);
+
+            Title_TitleCard_Draw();
+            break;
+
+        case TITLE_TAKE_OFF_SPACE:
+            Title_Matrix_Push();
+
+            Title_CsTakeOffSpace_Draw();
+
+            Matrix_Pop(&gGfxMatrix);
+            break;
+    }
+
+    if (sWipeHeight != 0) {
+        gFillScreenAlpha = 0;
+        gFillScreenRed = 0;
+        gFillScreenGreen = 0;
+        gFillScreenBlue = 0;
+        Wipe_Draw(WIPE_VERTICAL, sWipeHeight);
+    }
+
+// Debug prints for camera skipping
+#if 0
+    // Matrix_LookAt(gGfxMatrix, gCsCamEyeX, gCsCamEyeY, gCsCamEyeZ, gCsCamAtX, gCsCamAtY, gCsCamAtZ, sTitleCamUpX,
+    //               sTitleCamUpY, sTitleCamUpZ, MTXF_APPLY);
+
+    RCP_SetupDL(&gMasterDisp, SETUPDL_83);
+    gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 255, 0, 255);
+    Graphics_DisplaySmallText(10, 10, 1.0f, 1.0f, "CSEYEX:");
+    Graphics_DisplaySmallNumber(80, 10, (int) ABS(gCsCamEyeX));
+    if (gCsCamEyeX < 0.0f)
+        Graphics_DisplaySmallText(70, 10, 1.0f, 1.0f, "-");
+
+    Graphics_DisplaySmallText(10, 20, 1.0f, 1.0f, "CSEYEY:");
+    Graphics_DisplaySmallNumber(80, 20, (int) ABS(gCsCamEyeY));
+    if (gCsCamEyeY < 0.0f)
+        Graphics_DisplaySmallText(70, 20, 1.0f, 1.0f, "-");
+
+    Graphics_DisplaySmallText(10, 30, 1.0f, 1.0f, "CSEYEZ:");
+    Graphics_DisplaySmallNumber(80, 30, (int) ABS(gCsCamEyeZ));
+    if (gCsCamEyeZ < 0.0f)
+        Graphics_DisplaySmallText(70, 30, 1.0f, 1.0f, "-");
+
+    Graphics_DisplaySmallText(10, 40, 1.0f, 1.0f, "CSATX:");
+    Graphics_DisplaySmallNumber(80, 40, (int) ABS(gCsCamAtX));
+    if (gCsCamAtX < 0.0f)
+        Graphics_DisplaySmallText(70, 40, 1.0f, 1.0f, "-");
+
+    Graphics_DisplaySmallText(10, 50, 1.0f, 1.0f, "CSATY:");
+    Graphics_DisplaySmallNumber(80, 50, (int) ABS(gCsCamAtY));
+    if (gCsCamAtY < 0.0f)
+        Graphics_DisplaySmallText(70, 50, 1.0f, 1.0f, "-");
+
+    Graphics_DisplaySmallText(10, 60, 1.0f, 1.0f, "CSATZ:");
+    Graphics_DisplaySmallNumber(80, 60, (int) ABS(gCsCamAtZ));
+    if (gCsCamAtZ < 0.0f)
+        Graphics_DisplaySmallText(70, 60, 1.0f, 1.0f, "-");
+
+    Graphics_DisplaySmallText(10, 70, 1.0f, 1.0f, "SCNSTATE:");
+    Graphics_DisplaySmallNumber(80, 70, (int) ABS(sSceneState));
+
+    Graphics_DisplaySmallText(10, 80, 1.0f, 1.0f, "CSSTATE:");
+    Graphics_DisplaySmallNumber(80, 80, (int) ABS(sCutsceneState));
+#endif
+}
+#endif
 
 #if 1 // Hangar Widescreen fix
 RECOMP_PATCH void Title_GreatFoxDeck_Draw(void) {
@@ -22,12 +203,18 @@ RECOMP_PATCH void Title_GreatFoxDeck_Draw(void) {
                        gAmbientB);
     RCP_SetupDL(&gMasterDisp, SETUPDL_23);
 
+    if (gCamera1Skipped) {
+        // Skip
+        // @recomp Tag the transform
+        gEXMatrixGroupDecomposedSkipAll(gMasterDisp++, TAG_GREATFOXDECK, G_EX_PUSH, G_MTX_MODELVIEW, G_EX_EDIT_NONE);
+    } else {
+        // @recomp Tag the transform.
+        gEXMatrixGroupDecomposedNormal(gMasterDisp++, TAG_GREATFOXDECK, G_EX_PUSH, G_MTX_MODELVIEW, G_EX_EDIT_ALLOW);
+    }
+
     Matrix_Push(&gGfxMatrix);
     Matrix_Translate(gGfxMatrix, 0.0f, D_menu_801B9048, D_menu_801B904C, MTXF_APPLY);
     Matrix_Scale(gGfxMatrix, 0.4f, 0.4f, 0.4f, MTXF_APPLY);
-
-    // @recomp Tag the transform.
-    gEXMatrixGroupDecomposedNormal(gMasterDisp++, TAG_GREATFOXDECK, G_EX_PUSH, G_MTX_MODELVIEW, G_EX_EDIT_ALLOW);
 
     Matrix_SetGfxMtx(&gMasterDisp);
 
@@ -52,21 +239,28 @@ RECOMP_PATCH void Title_GreatFoxDeck_Draw(void) {
     gSPClearGeometryMode(gMasterDisp++, G_CULL_FRONT); // Clear front-face culling (inverted)
     gSPSetGeometryMode(gMasterDisp++, G_CULL_BACK);    // Re-enable normal backface culling
 
-    // @recomp Pop the transform id.
-    gEXPopMatrixGroup(gMasterDisp++, G_MTX_MODELVIEW);
-
     Matrix_Pop(&gGfxMatrix); // Restore original matrix state
 
     Title_GreatFoxDeckPlatform_Draw();
 
     Matrix_Pop(&gGfxMatrix); // Restore original transformation
+
+    // @recomp Pop the transform id.
+    gEXPopMatrixGroup(gMasterDisp++, G_MTX_MODELVIEW);
 }
 #endif
 
 RECOMP_PATCH void Title_GreatFoxDeckPlatform_Draw(void) {
-    // @recomp Tag the transform.
-    gEXMatrixGroupDecomposedNormal(gMasterDisp++, TAG_GREATFOXDECK_PLATFORM, G_EX_PUSH, G_MTX_MODELVIEW,
-                                   G_EX_EDIT_ALLOW);
+    if (gCamera1Skipped) {
+        // Skip
+        // @recomp Tag the transform
+        gEXMatrixGroupDecomposedSkipAll(gMasterDisp++, TAG_GREATFOXDECK_PLATFORM, G_EX_PUSH, G_MTX_MODELVIEW,
+                                        G_EX_EDIT_NONE);
+    } else {
+        // @recomp Tag the transform.
+        gEXMatrixGroupDecomposedNormal(gMasterDisp++, TAG_GREATFOXDECK_PLATFORM, G_EX_PUSH, G_MTX_MODELVIEW,
+                                       G_EX_EDIT_ALLOW);
+    }
 
     gSPSetGeometryMode(gMasterDisp++, G_CULL_BACK);
     Matrix_Translate(gGfxMatrix, 400.0f, -250.0f, 0.0f, MTXF_APPLY);
@@ -165,12 +359,13 @@ RECOMP_PATCH void Title_CorneriaExplosions_Draw(void) {
 
     for (i = 0; i < sMaxExplosions; i++) {
         // @recomp Tag the transform.
-        gEXMatrixGroupDecomposedSkipAll(gMasterDisp++, TAG_CORNERIA_EXPLOSIONS + i, G_EX_PUSH, G_MTX_MODELVIEW,
-                                        G_EX_EDIT_ALLOW);
-        // gEXMatrixGroupDecomposed(gMasterDisp++, TAG_CORNERIA_EXPLOSIONS + i, G_EX_PUSH, G_MTX_MODELVIEW,
-        //                          G_EX_COMPONENT_AUTO, G_EX_COMPONENT_AUTO, G_EX_COMPONENT_AUTO,
-        //                          G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_SKIP,
-        //                          G_EX_COMPONENT_INTERPOLATE, G_EX_ORDER_AUTO, G_EX_EDIT_ALLOW);
+        // gEXMatrixGroupDecomposedSkipAll(gMasterDisp++, TAG_CORNERIA_EXPLOSIONS + i, G_EX_PUSH, G_MTX_MODELVIEW,
+        //                                 G_EX_EDIT_ALLOW);
+        gEXMatrixGroupDecomposed(gMasterDisp++, TAG_CORNERIA_EXPLOSIONS + i, G_EX_PUSH, G_MTX_MODELVIEW,
+                                 G_EX_COMPONENT_AUTO, G_EX_COMPONENT_AUTO, G_EX_COMPONENT_AUTO,
+                                 G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_SKIP,
+                                 G_EX_COMPONENT_INTERPOLATE, G_EX_ORDER_AUTO, G_EX_EDIT_ALLOW, G_EX_COMPONENT_SKIP,
+                                 G_EX_COMPONENT_SKIP);
 
         gDPSetPrimColor(gMasterDisp++, 0, 0, 255, 200, 200, D_menu_801B7CC8[i]);
         gDPSetEnvColor(gMasterDisp++, 255, 0, 0, D_menu_801B7CF0[i]);
@@ -204,9 +399,16 @@ RECOMP_PATCH void Title_GreatFoxDeckLauncher_Draw(TitleTeam teamIdx) {
     Matrix_Translate(gGfxMatrix, sTitleArwing[teamIdx].pos.x, -12.8f, sTitleDeckLauncherZpos, MTXF_APPLY);
     Matrix_Scale(gGfxMatrix, 0.8f, 0.8f, 0.8f, MTXF_APPLY);
 
-    // @recomp Tag the transform.
-    gEXMatrixGroupDecomposedNormal(gMasterDisp++, TAG_GREATFOXDECK_LAUNCHER + teamIdx, G_EX_PUSH, G_MTX_MODELVIEW,
-                                   G_EX_EDIT_ALLOW);
+    if (gCamera1Skipped) {
+        // Skip
+        // @recomp Tag the transform
+        gEXMatrixGroupDecomposedSkipAll(gMasterDisp++, TAG_GREATFOXDECK_LAUNCHER + teamIdx, G_EX_PUSH, G_MTX_MODELVIEW,
+                                        G_EX_EDIT_NONE);
+    } else {
+        // @recomp Tag the transform.
+        gEXMatrixGroupDecomposedNormal(gMasterDisp++, TAG_GREATFOXDECK_LAUNCHER + teamIdx, G_EX_PUSH, G_MTX_MODELVIEW,
+                                       G_EX_EDIT_ALLOW);
+    }
 
     Matrix_SetGfxMtx(&gMasterDisp);
 
@@ -263,9 +465,16 @@ RECOMP_PATCH void Title_Arwing_DrawEngineGlow(TitleTeam teamIdx) {
 
     gSPClearGeometryMode(gMasterDisp++, G_CULL_BACK);
 
-    // @recomp Tag the transform.
-    gEXMatrixGroupDecomposedNormal(gMasterDisp++, TAG_ARWING_ENGINE_GLOW + teamIdx, G_EX_PUSH, G_MTX_MODELVIEW,
-                                   G_EX_EDIT_ALLOW);
+    if (gCamera1Skipped) {
+        // Skip
+        // @recomp Tag the transform
+        gEXMatrixGroupDecomposedSkipAll(gMasterDisp++, TAG_ARWING_ENGINE_GLOW + teamIdx, G_EX_PUSH, G_MTX_MODELVIEW,
+                                        G_EX_EDIT_NONE);
+    } else {
+        // @recomp Tag the transform.
+        gEXMatrixGroupDecomposedNormal(gMasterDisp++, TAG_ARWING_ENGINE_GLOW + teamIdx, G_EX_PUSH, G_MTX_MODELVIEW,
+                                       G_EX_EDIT_ALLOW);
+    }
 
     gSPDisplayList(gMasterDisp++, aTitleArwingEngineGlowDL);
 
@@ -347,9 +556,16 @@ RECOMP_PATCH void Title_EngineGlowParticles_Draw(TitleTeam teamIdx) {
 
         Matrix_SetGfxMtx(&gMasterDisp);
 
-        // @recomp Tag the transform.
-        gEXMatrixGroupDecomposedNormal(gMasterDisp++, TAG_ARWING_ENGINE_GLOW_PARTICLES + (teamIdx << 8) + i, G_EX_PUSH,
-                                       G_MTX_MODELVIEW, G_EX_EDIT_ALLOW);
+        if (gCamera1Skipped) {
+            // Skip
+            // @recomp Tag the transform
+            gEXMatrixGroupDecomposedSkipAll(gMasterDisp++, TAG_ARWING_ENGINE_GLOW_PARTICLES, G_EX_PUSH, G_MTX_MODELVIEW,
+                                            G_EX_EDIT_NONE);
+        } else {
+            // @recomp Tag the transform.
+            gEXMatrixGroupDecomposedNormal(gMasterDisp++, TAG_ARWING_ENGINE_GLOW_PARTICLES + (teamIdx << 8) + i,
+                                           G_EX_PUSH, G_MTX_MODELVIEW, G_EX_EDIT_ALLOW);
+        }
 
         gSPDisplayList(gMasterDisp++, aTitleArwingEngineGlowDL);
 
@@ -368,9 +584,16 @@ RECOMP_PATCH void Title_ArwingShadow_Draw(s32 arg0) {
     Matrix_Scale(gGfxMatrix, 1.0f, 1.0f, 1.0f, MTXF_APPLY);
     Matrix_RotateY(gGfxMatrix, M_PI, MTXF_APPLY);
 
-    // @recomp Tag the transform.
-    gEXMatrixGroupDecomposedNormal(gMasterDisp++, TAG_ARWING_SHADOW + arg0, G_EX_PUSH, G_MTX_MODELVIEW,
-                                   G_EX_EDIT_ALLOW);
+    if (gCamera1Skipped) {
+        // Skip
+        // @recomp Tag the transform
+        gEXMatrixGroupDecomposedSkipAll(gMasterDisp++, TAG_ARWING_SHADOW + arg0, G_EX_PUSH, G_MTX_MODELVIEW,
+                                        G_EX_EDIT_NONE);
+    } else {
+        // @recomp Tag the transform.
+        gEXMatrixGroupDecomposedNormal(gMasterDisp++, TAG_ARWING_SHADOW + arg0, G_EX_PUSH, G_MTX_MODELVIEW,
+                                       G_EX_EDIT_ALLOW);
+    }
 
     Matrix_SetGfxMtx(&gMasterDisp);
 
@@ -548,6 +771,7 @@ RECOMP_PATCH void Title_CsTakeOff_Update(void) __attribute__((optnone)) {
                 gAmbientB = 46;
 
                 sSceneState++;
+                sSkipInterpolation = 1;
             }
             sTimer3++;
             break;
@@ -648,6 +872,7 @@ RECOMP_PATCH void Title_CsTakeOff_Update(void) __attribute__((optnone)) {
                     Audio_SetEnvSfxReverb(0);
                     sSceneState = 0;
                     sCutsceneState = 5; // TITLE_TAKE_OFF_SPACE
+                    sSkipInterpolation = 1;
                 }
                 sTimer3++;
             }

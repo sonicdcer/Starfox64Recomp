@@ -58,12 +58,11 @@
 
 const std::string version_string = "1.0.3";
 
-template<typename... Ts>
-void exit_error(const char* str, Ts ...args) {
+template <typename... Ts> void exit_error(const char* str, Ts... args) {
     // TODO pop up an error
-    ((void)fprintf(stderr, str, args), ...);
+    ((void) fprintf(stderr, str, args), ...);
     assert(false);
-        
+
     ultramodern::error_handling::quick_exit(__FILE__, __LINE__, __FUNCTION__);
 }
 
@@ -87,11 +86,11 @@ ultramodern::gfx_callbacks_t::gfx_data_t create_gfx() {
 #if defined(__gnu_linux__)
 #include "icon_bytes.h"
 
-bool SetImageAsIcon(const char* filename, SDL_Window* window)
-{
+bool SetImageAsIcon(const char* filename, SDL_Window* window) {
     // Read data
     int width, height, bytesPerPixel;
-    void* data = stbi_load_from_memory(reinterpret_cast<const uint8_t*>(icon_bytes), sizeof(icon_bytes), &width, &height, &bytesPerPixel, 4);
+    void* data = stbi_load_from_memory(reinterpret_cast<const uint8_t*>(icon_bytes), sizeof(icon_bytes), &width,
+                                       &height, &bytesPerPixel, 4);
 
     // Calculate pitch
     int pitch;
@@ -115,17 +114,16 @@ bool SetImageAsIcon(const char* filename, SDL_Window* window)
 
     SDL_Surface* surface = nullptr;
     if (data != nullptr) {
-        surface = SDL_CreateRGBSurfaceFrom(data, width, height, 32, pitch, Rmask, Gmask,
-                            Bmask, Amask);
+        surface = SDL_CreateRGBSurfaceFrom(data, width, height, 32, pitch, Rmask, Gmask, Bmask, Amask);
     }
 
-    if (surface == nullptr) {   
+    if (surface == nullptr) {
         if (data != nullptr) {
             stbi_image_free(data);
         }
         return false;
-	} else {
-        SDL_SetWindowIcon(window,surface);
+    } else {
+        SDL_SetWindowIcon(window, surface);
         SDL_FreeSurface(surface);
         stbi_image_free(data);
         return true;
@@ -144,13 +142,16 @@ ultramodern::renderer::WindowHandle create_window(ultramodern::gfx_callbacks_t::
     flags |= SDL_WINDOW_VULKAN;
 #endif
 
-    window = SDL_CreateWindow("Starfox 64: Recompiled", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1600, 960,  flags);
+    window =
+        SDL_CreateWindow("Starfox 64: Recompiled", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1600, 960, flags);
 #if defined(__linux__)
-    SetImageAsIcon("icons/512.png",window);
-    if (ultramodern::renderer::get_graphics_config().wm_option == ultramodern::renderer::WindowMode::Fullscreen) { // TODO: Remove once RT64 gets native fullscreen support on Linux
-        SDL_SetWindowFullscreen(window,SDL_WINDOW_FULLSCREEN_DESKTOP);
+    SetImageAsIcon("icons/512.png", window);
+    if (ultramodern::renderer::get_graphics_config().wm_option ==
+        ultramodern::renderer::WindowMode::Fullscreen) { // TODO: Remove once RT64 gets native fullscreen support on
+                                                         // Linux
+        SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
     } else {
-        SDL_SetWindowFullscreen(window,0);
+        SDL_SetWindowFullscreen(window, 0);
     }
 #endif
 
@@ -168,7 +169,7 @@ ultramodern::renderer::WindowHandle create_window(ultramodern::gfx_callbacks_t::
     return ultramodern::renderer::WindowHandle{ window };
 #elif defined(__APPLE__)
     SDL_MetalView view = SDL_Metal_CreateView(window);
-    return ultramodern::renderer::WindowHandle{ wmInfo.info.cocoa.window,  SDL_Metal_GetLayer(view) };
+    return ultramodern::renderer::WindowHandle{ wmInfo.info.cocoa.window, SDL_Metal_GetLayer(view) };
 #else
     static_assert(false && "Unimplemented");
 #endif
@@ -188,7 +189,8 @@ static uint32_t output_sample_rate = 48000;
 constexpr uint32_t input_channels = 2;
 static uint32_t output_channels = 2;
 
-// Terminology: a frame is a collection of samples for each channel. e.g. 2 input samples is one input frame. This is unrelated to graphical frames.
+// Terminology: a frame is a collection of samples for each channel. e.g. 2 input samples is one input frame. This is
+// unrelated to graphical frames.
 
 // Number of frames to duplicate for fixing interpolation at the start and end of a chunk.
 constexpr uint32_t duplicated_input_frames = 4;
@@ -203,13 +205,14 @@ void queue_samples(int16_t* audio_data, size_t sample_count) {
     static std::vector<float> swap_buffer;
     static std::array<float, duplicated_input_frames * input_channels> duplicated_sample_buffer;
 
-    // Make sure the swap buffer is large enough to hold the audio data, including any extra space needed for resampling.
+    // Make sure the swap buffer is large enough to hold the audio data, including any extra space needed for
+    // resampling.
     size_t resampled_sample_count = sample_count + duplicated_input_frames * input_channels;
     size_t max_sample_count = std::max(resampled_sample_count, resampled_sample_count * audio_convert.len_mult);
     if (max_sample_count > swap_buffer.size()) {
         swap_buffer.resize(max_sample_count);
     }
-    
+
     // Copy the duplicated frames from last chunk into this chunk
     for (size_t i = 0; i < duplicated_input_frames * input_channels; i++) {
         swap_buffer[i] = duplicated_sample_buffer[i];
@@ -219,10 +222,12 @@ void queue_samples(int16_t* audio_data, size_t sample_count) {
     // swap buffer to correct for the address xor caused by endianness handling.
     float cur_main_volume = zelda64::get_main_volume() / 100.0f; // Get the current main volume, normalized to 0.0-1.0.
     for (size_t i = 0; i < sample_count; i += input_channels) {
-        swap_buffer[i + 0 + duplicated_input_frames * input_channels] = audio_data[i + 1] * (1.0f / 32768.0f) * cur_main_volume;
-        swap_buffer[i + 1 + duplicated_input_frames * input_channels] = audio_data[i + 0] * (1.0f / 32768.0f) * cur_main_volume;
+        swap_buffer[i + 0 + duplicated_input_frames * input_channels] =
+            audio_data[i + 1] * (1.0f / 32768.0f) * cur_main_volume;
+        swap_buffer[i + 1 + duplicated_input_frames * input_channels] =
+            audio_data[i + 0] * (1.0f / 32768.0f) * cur_main_volume;
     }
-    
+
     // TODO handle cases where a chunk is smaller than the duplicated frame count.
     assert(sample_count > duplicated_input_frames * input_channels);
 
@@ -230,7 +235,7 @@ void queue_samples(int16_t* audio_data, size_t sample_count) {
     for (size_t i = 0; i < duplicated_input_frames * input_channels; i++) {
         duplicated_sample_buffer[i] = swap_buffer[i + sample_count];
     }
-    
+
     audio_convert.buf = reinterpret_cast<Uint8*>(swap_buffer.data());
     audio_convert.len = (sample_count + duplicated_input_frames * input_channels) * sizeof(swap_buffer[0]);
 
@@ -241,12 +246,14 @@ void queue_samples(int16_t* audio_data, size_t sample_count) {
         throw std::runtime_error("Error using SDL audio converter");
     }
 
-    uint64_t cur_queued_microseconds = uint64_t(SDL_GetQueuedAudioSize(audio_device)) / bytes_per_frame * 1000000 / sample_rate;
-    uint32_t num_bytes_to_queue = audio_convert.len_cvt - output_channels * discarded_output_frames * sizeof(swap_buffer[0]);
+    uint64_t cur_queued_microseconds =
+        uint64_t(SDL_GetQueuedAudioSize(audio_device)) / bytes_per_frame * 1000000 / sample_rate;
+    uint32_t num_bytes_to_queue =
+        audio_convert.len_cvt - output_channels * discarded_output_frames * sizeof(swap_buffer[0]);
     float* samples_to_queue = swap_buffer.data() + output_channels * discarded_output_frames / 2;
 
-    // Prevent audio latency from building up by skipping samples in incoming audio when too many samples are already queued.
-    // Skip samples based on how many microseconds of samples are queued already.
+    // Prevent audio latency from building up by skipping samples in incoming audio when too many samples are already
+    // queued. Skip samples based on how many microseconds of samples are queued already.
     uint32_t skip_factor = cur_queued_microseconds / 100000;
     if (skip_factor != 0) {
         uint32_t skip_ratio = 1 << skip_factor;
@@ -258,7 +265,8 @@ void queue_samples(int16_t* audio_data, size_t sample_count) {
     }
 
     // Queue the swapped audio data.
-    // Offset the data start by only half the discarded frame count as the other half of the discarded frames are at the end of the buffer.
+    // Offset the data start by only half the discarded frame count as the other half of the discarded frames are at the
+    // end of the buffer.
     SDL_QueueAudio(audio_device, samples_to_queue, num_bytes_to_queue);
 }
 
@@ -277,8 +285,7 @@ size_t get_frames_remaining() {
     uint32_t frames_per_vi = (sample_rate / 60);
     if (buffered_byte_count > (buffer_offset_frames * bytes_per_frame * frames_per_vi)) {
         buffered_byte_count -= (buffer_offset_frames * bytes_per_frame * frames_per_vi);
-    }
-    else {
+    } else {
         buffered_byte_count = 0;
     }
     // Convert from byte count to sample count.
@@ -286,7 +293,8 @@ size_t get_frames_remaining() {
 }
 
 void update_audio_converter() {
-    int ret = SDL_BuildAudioCVT(&audio_convert, AUDIO_F32, input_channels, sample_rate, AUDIO_F32, output_channels, output_sample_rate);
+    int ret = SDL_BuildAudioCVT(&audio_convert, AUDIO_F32, input_channels, sample_rate, AUDIO_F32, output_channels,
+                                output_sample_rate);
 
     if (ret < 0) {
         printf("Error creating SDL audio converter: %s\n", SDL_GetError());
@@ -299,23 +307,21 @@ void update_audio_converter() {
 
 void set_frequency(uint32_t freq) {
     sample_rate = freq;
-    
+
     update_audio_converter();
 }
 
 void reset_audio(uint32_t output_freq) {
-    SDL_AudioSpec spec_desired{
-        .freq = (int)output_freq,
-        .format = AUDIO_F32,
-        .channels = (Uint8)output_channels,
-        .silence = 0, // calculated
-        .samples = 0x100, // Fairly small sample count to reduce the latency of internal buffering
-        .padding = 0, // unused
-        .size = 0, // calculated
-        .callback = nullptr,
-        .userdata = nullptr
-    };
-
+    SDL_AudioSpec spec_desired{ .freq = (int) output_freq,
+                                .format = AUDIO_F32,
+                                .channels = (Uint8) output_channels,
+                                .silence = 0, // calculated
+                                .samples =
+                                    0x100,    // Fairly small sample count to reduce the latency of internal buffering
+                                .padding = 0, // unused
+                                .size = 0,    // calculated
+                                .callback = nullptr,
+                                .userdata = nullptr };
 
     audio_device = SDL_OpenAudioDevice(nullptr, false, &spec_desired, nullptr, 0);
     if (audio_device == 0) {
@@ -332,19 +338,19 @@ extern RspUcodeFunc aspMain;
 
 RspUcodeFunc* get_rsp_microcode(const OSTask* task) {
     switch (task->t.type) {
-    case M_AUDTASK:
-        return aspMain;
+        case M_AUDTASK:
+            return aspMain;
 
-    // case M_NJPEGTASK:
-    //     return njpgdspMain;
+            // case M_NJPEGTASK:
+            //     return njpgdspMain;
 
-    default:
-        fprintf(stderr, "Unknown task: %" PRIu32 "\n", task->t.type);
-        return nullptr;
+        default:
+            fprintf(stderr, "Unknown task: %" PRIu32 "\n", task->t.type);
+            return nullptr;
     }
 }
 
-extern "C" void recomp_entrypoint(uint8_t * rdram, recomp_context * ctx);
+extern "C" void recomp_entrypoint(uint8_t* rdram, recomp_context* ctx);
 gpr get_entrypoint_address();
 
 // array of supported GameEntry objects
@@ -365,86 +371,86 @@ std::vector<recomp::GameEntry> supported_games = {
 
 // TODO: move somewhere else
 namespace zelda64 {
-    std::string get_game_thread_name(const OSThread* t) {
-        std::string name = "[Game] ";
+std::string get_game_thread_name(const OSThread* t) {
+    std::string name = "[Game] ";
 
-        switch (t->id) {
-            case 0:
-                switch (t->priority) {
-                    case 150:
-                        name += "PIMGR";
-                        break;
+    switch (t->id) {
+        case 0:
+            switch (t->priority) {
+                case 150:
+                    name += "PIMGR";
+                    break;
 
-                    case 254:
-                        name += "VIMGR";
-                        break;
+                case 254:
+                    name += "VIMGR";
+                    break;
 
-                    default:
-                        name += std::to_string(t->id);
-                        break;
-                }
-                break;
+                default:
+                    name += std::to_string(t->id);
+                    break;
+            }
+            break;
 
-            case 1:
-                name += "IDLE";
-                break;
+        case 1:
+            name += "IDLE";
+            break;
 
-            case 2:
-                switch (t->priority) {
-                    case 5:
-                        name += "SLOWLY";
-                        break;
+        case 2:
+            switch (t->priority) {
+                case 5:
+                    name += "SLOWLY";
+                    break;
 
-                    case 127:
-                        name += "FAULT";
-                        break;
+                case 127:
+                    name += "FAULT";
+                    break;
 
-                    default:
-                        name += std::to_string(t->id);
-                        break;
-                }
-                break;
+                default:
+                    name += std::to_string(t->id);
+                    break;
+            }
+            break;
 
-            case 3:
-                name += "MAIN";
-                break;
+        case 3:
+            name += "MAIN";
+            break;
 
-            case 4:
-                name += "GRAPH";
-                break;
+        case 4:
+            name += "GRAPH";
+            break;
 
-            case 5:
-                name += "SCHED";
-                break;
+        case 5:
+            name += "SCHED";
+            break;
 
-            case 7:
-                name += "PADMGR";
-                break;
+        case 7:
+            name += "PADMGR";
+            break;
 
-            case 10:
-                name += "AUDIOMGR";
-                break;
+        case 10:
+            name += "AUDIOMGR";
+            break;
 
-            case 13:
-                name += "FLASHROM";
-                break;
+        case 13:
+            name += "FLASHROM";
+            break;
 
-            case 18:
-                name += "DMAMGR";
-                break;
+        case 18:
+            name += "DMAMGR";
+            break;
 
-            case 19:
-                name += "IRQMGR";
-                break;
+        case 19:
+            name += "IRQMGR";
+            break;
 
-            default:
-                name += std::to_string(t->id);
-                break;
-        }
-
-        return name;
+        default:
+            name += std::to_string(t->id);
+            break;
     }
+
+    return name;
 }
+} // namespace zelda64
 
 #ifdef _WIN32
 
@@ -459,7 +465,8 @@ bool preload_executable(PreloadContext& context) {
     wchar_t module_name[MAX_PATH];
     GetModuleFileNameW(NULL, module_name, MAX_PATH);
 
-    context.handle = CreateFileW(module_name, GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+    context.handle =
+        CreateFileW(module_name, GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
     if (context.handle == INVALID_HANDLE_VALUE) {
         fprintf(stderr, "Failed to load executable into memory!");
         context = {};
@@ -527,7 +534,7 @@ bool preload_executable(PreloadContext& context) {
         context = {};
         return false;
     }
-    
+
     return true;
 }
 
@@ -540,9 +547,7 @@ void release_preload(PreloadContext& context) {
 
 #else
 
-struct PreloadContext {
-
-};
+struct PreloadContext {};
 
 // TODO implement on other platforms
 bool preload_executable(PreloadContext& context) {
@@ -569,8 +574,8 @@ void reorder_texture_pack(recomp::mods::ModContext&) {
 #define REGISTER_FUNC(name) recomp::overlays::register_base_export(#name, name)
 
 int main(int argc, char** argv) {
-    (void)argc;
-    (void)argv;
+    (void) argc;
+    (void) argv;
     recomp::Version project_version{};
     if (!recomp::Version::from_string(version_string, project_version)) {
         ultramodern::error_handling::message_box(("Invalid version string: " + version_string).c_str());
@@ -578,7 +583,8 @@ int main(int argc, char** argv) {
     }
 
     // Map this executable into memory and lock it, which should keep it in physical memory. This ensures
-    // that there are no stutters from the OS having to load new pages of the executable whenever a new code page is run.
+    // that there are no stutters from the OS having to load new pages of the executable whenever a new code page is
+    // run.
     PreloadContext preload_context;
     bool preloaded = preload_executable(preload_context);
 
@@ -591,7 +597,20 @@ int main(int argc, char** argv) {
     timeBeginPeriod(1);
 
     // Process arguments.
-    
+
+    for (int i = 1; i < argc; i++) {
+        if (strcmp(argv[i], "--show-console") == 0) {
+            if (GetConsoleWindow() == nullptr) {
+                AllocConsole();
+                freopen("CONIN$", "r", stdin);
+                freopen("CONOUT$", "w", stderr);
+                freopen("CONOUT$", "w", stdout);
+            }
+
+            break;
+        }
+    }
+
     // Set up console output to accept UTF-8 on windows
     SetConsoleOutputCP(CP_UTF8);
 
@@ -629,7 +648,7 @@ int main(int argc, char** argv) {
 
     // Source controller mappings file
     std::u8string controller_db_path = (zelda64::get_program_path() / "recompcontrollerdb.txt").u8string();
-    if (SDL_GameControllerAddMappingsFromFile(reinterpret_cast<const char *>(controller_db_path.c_str())) < 0) {
+    if (SDL_GameControllerAddMappingsFromFile(reinterpret_cast<const char*>(controller_db_path.c_str())) < 0) {
         fprintf(stderr, "Failed to load controller mappings: %s\n", SDL_GetError());
     }
 
@@ -640,9 +659,10 @@ int main(int argc, char** argv) {
         recomp::register_game(game);
     }
 
-    //recomp::mods::register_embedded_mod("mm_recomp_dpad_builtin", { (const uint8_t*)(mm_recomp_dpad_builtin), std::size(mm_recomp_dpad_builtin)});
+    // recomp::mods::register_embedded_mod("mm_recomp_dpad_builtin", { (const uint8_t*)(mm_recomp_dpad_builtin),
+    // std::size(mm_recomp_dpad_builtin)});
 
-    //REGISTER_FUNC(recomp_get_window_resolution);
+    // REGISTER_FUNC(recomp_get_window_resolution);
     REGISTER_FUNC(recomp_get_target_aspect_ratio);
     REGISTER_FUNC(recomp_get_target_framerate);
     REGISTER_FUNC(recomp_get_film_grain_enabled);
@@ -738,11 +758,11 @@ int main(int argc, char** argv) {
     if (preloaded) {
         release_preload(preload_context);
     }
-    
-    #ifdef _WIN32
+
+#ifdef _WIN32
     // End high resolution timing period.
     timeEndPeriod(1);
-    #endif
-    
+#endif
+
     return EXIT_SUCCESS;
 }
