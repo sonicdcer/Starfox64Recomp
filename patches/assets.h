@@ -1665,4 +1665,5 @@ extern Limb* aSxSpyborgSkel[45];
 extern f32 D_i2_80195D88[3];
 extern f32 D_i2_80195D98[3];
 extern s32 D_i2_80195640;
+extern f32 D_i6_801A69AC[20];
 #endif

@@ -8,6 +8,8 @@ extern Gfx aKaFLBaseDestroyedDL[];
 
 void Meteo_MeCrusherEngineGlow_Draw(s32 scale);
 bool Andross_AndBrain_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx);
+bool SectorY_SyShogun_OverrideLimbDraw(s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3f* rot, void* thisx);
+void SectorY_SyShogun_PostLimbDraw(s32 limbIndex, Vec3f* rot, void* thisx);
 
 RECOMP_PATCH void Andross_AndBrain_Draw(AndBrain* this) {
     s32 j;
@@ -23,7 +25,8 @@ RECOMP_PATCH void Andross_AndBrain_Draw(AndBrain* this) {
         Matrix_RotateZ(gGfxMatrix, gGameFrameCount * 20.0f * M_DTOR, MTXF_APPLY);
         Matrix_Scale(gGfxMatrix, this->fwork[23] + 1.0f, 1.0f - this->fwork[23], 1.0f, MTXF_APPLY);
         Matrix_Scale(gGfxMatrix, this->scale, this->scale, this->scale, MTXF_APPLY);
-        Animation_DrawSkeleton(0, aVe2AndBrainSkel, this->vwork, Andross_AndBrain_OverrideLimbDraw, NULL, this, &gIdentityMatrix);
+        Animation_DrawSkeleton(0, aVe2AndBrainSkel, this->vwork, Andross_AndBrain_OverrideLimbDraw, NULL, this,
+                               &gIdentityMatrix);
         if (this->fwork[21] >= 254) {
             RCP_SetupDL(&gMasterDisp, SETUPDL_54);
             gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 64, 64, 255);
@@ -439,8 +442,8 @@ RECOMP_PATCH void Area6_8018BCD4(Vec3f* arg0, f32 arg1, f32 arg2, Vec3f* arg3, s
             Matrix_Push(&gCalcMatrix);
 
             // @recomp Tag the transform.
-            gEXMatrixGroupDecomposedNormal(gMasterDisp++, TAG_BOSS_GORGON(arg0) | ((i << 16) & 0x00FF0000), G_EX_PUSH, G_MTX_MODELVIEW,
-                                           G_EX_EDIT_ALLOW);
+            gEXMatrixGroupDecomposedNormal(gMasterDisp++, TAG_BOSS_GORGON(arg0) | ((i << 16) & 0x00FF0000), G_EX_PUSH,
+                                           G_MTX_MODELVIEW, G_EX_EDIT_ALLOW);
 
             if (i == 11) {
                 Matrix_Scale(gCalcMatrix, 1.5f, 1.5f, 1.5f, MTXF_APPLY);
@@ -472,6 +475,170 @@ RECOMP_PATCH void Area6_8018BCD4(Vec3f* arg0, f32 arg1, f32 arg2, Vec3f* arg3, s
         }
 
         Matrix_Pop(&gGfxMatrix);
+    }
+}
+
+RECOMP_PATCH void SectorY_SyShogun_Draw(SyShogun* this) {
+    f32 sp9C;
+    f32 sp98;
+    f32 sp94;
+    f32 sp90;
+    f32 sp8C;
+    f32 sp88;
+
+    if ((this->index != 0) || ((this->swork[24] % 2) != 0) || ((this->timer_05C % 2) != 0)) {
+        RCP_SetupDL_30(gFogRed, gFogGreen, gFogBlue, gFogAlpha, gFogNear, gFogFar);
+    } else {
+        RCP_SetupDL_29(gFogRed, gFogGreen, gFogBlue, gFogAlpha, gFogNear, gFogFar);
+    }
+
+    if ((this->health > 0) || (this->swork[36] == 0)) {
+        Animation_DrawSkeleton(2, D_SY_602D140, this->vwork, SectorY_SyShogun_OverrideLimbDraw,
+                               SectorY_SyShogun_PostLimbDraw, this, gCalcMatrix);
+        if (this->timer_054 != 0) {
+            sp9C = D_i6_801A69AC[this->timer_054];
+            RCP_SetupDL_49();
+            gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 255);
+            gDPSetEnvColor(gMasterDisp++, 255, 48, 0, 255);
+            Matrix_Pop(&gGfxMatrix);
+
+            // @recomp Tag the transform.
+            gEXMatrixGroupDecomposedNormal(gMasterDisp++, TAG_BOSS(this) + 1, G_EX_PUSH, G_MTX_MODELVIEW,
+                                           G_EX_EDIT_ALLOW);
+
+            Matrix_Push(&gGfxMatrix);
+            Matrix_Translate(gGfxMatrix, this->fwork[1], this->fwork[2], this->fwork[3], MTXF_APPLY);
+            Matrix_Scale(gGfxMatrix, sp9C, sp9C, sp9C, MTXF_APPLY);
+            Matrix_SetGfxMtx(&gMasterDisp);
+            gSPDisplayList(gMasterDisp++, aOrbDL);
+
+            // @recomp Pop the transform id.
+            gEXPopMatrixGroup(gMasterDisp++, G_MTX_MODELVIEW);
+        }
+
+        if (this->fwork[34] != 0.0f) {
+            RCP_SetupDL_49();
+            gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 255);
+            gDPSetEnvColor(gMasterDisp++, 32, 255, 32, 255);
+            Matrix_Pop(&gGfxMatrix);
+
+            // @recomp Tag the transform.
+            gEXMatrixGroupDecomposedNormal(gMasterDisp++, TAG_BOSS(this) + 2, G_EX_PUSH, G_MTX_MODELVIEW,
+                                           G_EX_EDIT_ALLOW);
+
+            Matrix_Push(&gGfxMatrix);
+            Matrix_Translate(gGfxMatrix, this->fwork[31], this->fwork[32], this->fwork[33], MTXF_APPLY);
+            Matrix_Scale(gGfxMatrix, this->fwork[34], this->fwork[34], this->fwork[34], MTXF_APPLY);
+            Matrix_RotateX(gGfxMatrix, -this->obj.rot.x * M_DTOR, MTXF_APPLY);
+            Matrix_RotateZ(gGfxMatrix, -this->obj.rot.z * M_DTOR, MTXF_APPLY);
+            sp98 = gPlayer[0].cam.eye.x - this->obj.pos.x;
+            sp94 = gPlayer[0].cam.eye.y - this->obj.pos.y;
+            sp90 = gPlayer[0].cam.eye.z - (this->obj.pos.z + gPathProgress);
+            sp8C = -Math_Atan2F(sp98, sp90);
+            sp9C = sqrtf(SQ(sp90) + SQ(sp98));
+            sp88 = Math_Atan2F(sp94, sp9C);
+            Matrix_RotateY(gGfxMatrix, -sp8C, MTXF_APPLY);
+            Matrix_RotateX(gGfxMatrix, -sp88, MTXF_APPLY);
+            Matrix_SetGfxMtx(&gMasterDisp);
+            gSPDisplayList(gMasterDisp++, aOrbDL);
+
+            // @recomp Pop the transform id.
+            gEXPopMatrixGroup(gMasterDisp++, G_MTX_MODELVIEW);
+        }
+
+        if (this->index == 0) {
+            if (this->fwork[41] != 0.0f) {
+                RCP_SetupDL_49();
+                gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 255);
+                gDPSetEnvColor(gMasterDisp++, 32, 255, 32, 255);
+                Matrix_Pop(&gGfxMatrix);
+
+                // @recomp Tag the transform.
+                gEXMatrixGroupDecomposedNormal(gMasterDisp++, TAG_BOSS(this) + 3, G_EX_PUSH, G_MTX_MODELVIEW,
+                                               G_EX_EDIT_ALLOW);
+
+                Matrix_Push(&gGfxMatrix);
+                Matrix_Translate(gGfxMatrix, this->fwork[35], this->fwork[36], this->fwork[37], MTXF_APPLY);
+                Matrix_RotateY(gGfxMatrix, this->obj.rot.y * M_DTOR, MTXF_APPLY);
+                Matrix_RotateX(gGfxMatrix, this->obj.rot.x * M_DTOR, MTXF_APPLY);
+                Matrix_RotateZ(gGfxMatrix, this->obj.rot.z * M_DTOR, MTXF_APPLY);
+                Matrix_Scale(gGfxMatrix, this->fwork[41] * 2.0f, this->fwork[41], this->fwork[41] * 2.0f, MTXF_APPLY);
+                Matrix_SetGfxMtx(&gMasterDisp);
+                gSPDisplayList(gMasterDisp++, aOrbDL);
+
+                // @recomp Pop the transform id.
+                gEXPopMatrixGroup(gMasterDisp++, G_MTX_MODELVIEW);
+            }
+
+            if (this->fwork[42] != 0.0f) {
+                RCP_SetupDL_49();
+                gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 255, 255, 255, 255);
+                gDPSetEnvColor(gMasterDisp++, 32, 255, 32, 255);
+                Matrix_Pop(&gGfxMatrix);
+
+                // @recomp Tag the transform.
+                gEXMatrixGroupDecomposedNormal(gMasterDisp++, TAG_BOSS(this) + 4, G_EX_PUSH, G_MTX_MODELVIEW,
+                                               G_EX_EDIT_ALLOW);
+
+                Matrix_Push(&gGfxMatrix);
+                Matrix_Translate(gGfxMatrix, this->fwork[38], this->fwork[39], this->fwork[40], MTXF_APPLY);
+                Matrix_RotateY(gGfxMatrix, this->obj.rot.y * M_DTOR, MTXF_APPLY);
+                Matrix_RotateX(gGfxMatrix, this->obj.rot.x * M_DTOR, MTXF_APPLY);
+                Matrix_RotateZ(gGfxMatrix, this->obj.rot.z * M_DTOR, MTXF_APPLY);
+                Matrix_Scale(gGfxMatrix, this->fwork[42] * 2.0f, this->fwork[42], this->fwork[42] * 2.0f, MTXF_APPLY);
+                Matrix_SetGfxMtx(&gMasterDisp);
+                gSPDisplayList(gMasterDisp++, aOrbDL);
+
+                // @recomp Pop the transform id.
+                gEXPopMatrixGroup(gMasterDisp++, G_MTX_MODELVIEW);
+            }
+        }
+
+        if (this->fwork[43] != 0.0f) {
+            RCP_SetupDL_49();
+            gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, 0, 0, 0, 255);
+            gDPSetEnvColor(gMasterDisp++, 0, 0, 0, 0);
+            Matrix_Pop(&gGfxMatrix);
+
+            // @recomp Tag the transform.
+            gEXMatrixGroupDecomposedNormal(gMasterDisp++, TAG_BOSS(this) + 5, G_EX_PUSH, G_MTX_MODELVIEW,
+                                           G_EX_EDIT_ALLOW);
+
+            Matrix_Push(&gGfxMatrix);
+            Matrix_Translate(gGfxMatrix, this->obj.pos.x, 157.0f, this->obj.pos.z, MTXF_APPLY);
+            Matrix_RotateX(gGfxMatrix, M_PI / 2, MTXF_APPLY);
+            Matrix_Scale(gGfxMatrix, this->fwork[43], this->fwork[43], this->fwork[43], MTXF_APPLY);
+            Matrix_SetGfxMtx(&gMasterDisp);
+            gSPDisplayList(gMasterDisp++, aOrbDL);
+
+            // @recomp Pop the transform id.
+            gEXPopMatrixGroup(gMasterDisp++, G_MTX_MODELVIEW);
+        }
+
+        if (this->fwork[46] != 0.0f) {
+            RCP_SetupDL_49();
+            gDPSetPrimColor(gMasterDisp++, 0x00, 0x00, (s32) this->fwork[46], (s32) this->fwork[46], 0,
+                            (s32) this->fwork[46]);
+            gDPSetEnvColor(gMasterDisp++, 0, 0, 0, 0);
+            Matrix_Pop(&gGfxMatrix);
+
+            // @recomp Tag the transform.
+            gEXMatrixGroupDecomposedNormal(gMasterDisp++, TAG_BOSS(this) + 6, G_EX_PUSH, G_MTX_MODELVIEW,
+                                           G_EX_EDIT_ALLOW);
+
+            Matrix_Push(&gGfxMatrix);
+            Matrix_Translate(gGfxMatrix, this->obj.pos.x + 10.0f, this->obj.pos.y + 70.0f, this->obj.pos.z + 60.0f,
+                             MTXF_APPLY);
+            Matrix_Scale(gGfxMatrix, 0.4f, 0.2f, 0.2f, MTXF_APPLY);
+            Matrix_SetGfxMtx(&gMasterDisp);
+            gSPDisplayList(gMasterDisp++, aOrbDL);
+            Matrix_Translate(gGfxMatrix, -46.0f, 0, 0, MTXF_APPLY);
+            Matrix_SetGfxMtx(&gMasterDisp);
+            gSPDisplayList(gMasterDisp++, aOrbDL);
+
+            // @recomp Pop the transform id.
+            gEXPopMatrixGroup(gMasterDisp++, G_MTX_MODELVIEW);
+        }
     }
 }
 
