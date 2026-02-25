@@ -29,7 +29,7 @@ void* memcpy2(void* dest, const void* src, size_t n) {
     return dest;
 }
 
-// @recomp: Fix Pigma's voice line being cut out
+#if 1 // @recomp: Fix Pigma's voice line being cut out
 RECOMP_PATCH void Bolse_UpdateEventHandler(ActorEvent* this) {
     s32 i = 0;
     Player* player = &gPlayer[0];
@@ -274,7 +274,9 @@ RECOMP_PATCH void Bolse_UpdateEventHandler(ActorEvent* this) {
         }
     }
 }
+#endif
 
+#if 1 // Solar LevelComplete cutscene: fix time & magnitude on Fox's teamFaceXrot to compensate the lack of lag.
 RECOMP_PATCH void Solar_LevelComplete(Player* player) {
     s32 i;
     f32 sp78;
@@ -421,6 +423,9 @@ RECOMP_PATCH void Solar_LevelComplete(Player* player) {
             gFillScreenAlphaStep = 4;
 
             if (gMsgCharIsPrinting) {
+                // player->arwing.teamFaceXrot = (s32) (gGameFrameCount % 2U) * 5.0f;
+
+                // @recomp: fix time & magnitude on Fox's teamFaceXrot to compensate the lack of lag.
                 player->arwing.teamFaceXrot = (s32) (gGameFrameCount & 2) * 2.5f;
             }
 
@@ -669,8 +674,9 @@ RECOMP_PATCH void Solar_LevelComplete(Player* player) {
     player->rockPhase += 8.0f;
     player->rockAngle = SIN_DEG(player->rockPhase);
 }
+#endif
 
-#if 1
+#if 1 // Interpolation Tagging for ActorTeamArwing
 
 ArwingInfoRecomp gActorTeamArwing_recomp = { 0 };
 
@@ -1640,7 +1646,7 @@ RECOMP_PATCH void SectorX_SxSpyborg_Update(SxSpyborg* this) {
 }
 #endif
 
-#if 1
+#if 1 // Add rumble to Fortuna's bad ending cutscene
 RECOMP_PATCH s32 FoBase_ExplodeCs(FoBase* this) {
     Vec3f dest;
     Vec3f src;
