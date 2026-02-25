@@ -1761,3 +1761,62 @@ RECOMP_PATCH s32 FoBase_ExplodeCs(FoBase* this) {
     return csState;
 }
 #endif
+
+#if 1 // Sector X - LevelComplete Cutscene: Hide Falco's spawn behind Fox's Arwing
+RECOMP_PATCH void SectorX_LevelComplete_SetupTeam(ActorCutscene* this, s32 teamIdx) {
+    Vec3f srcA;
+    Vec3f destA;
+    Vec3f srcB;
+    Vec3f destB;
+    Player* player = &gPlayer[0];
+
+    Matrix_RotateY(gCalcMatrix, player->rot.y * M_DTOR, MTXF_NEW);
+
+    srcA.x = D_i2_80195710[teamIdx];
+    srcA.y = D_i2_80195720[teamIdx];
+    srcA.z = D_i2_80195730[teamIdx];
+
+    // @recomp: Hide Falco's spawn behind Fox's Arwing so he doesn't look like he came out of nowhere on widescreen.
+    if (teamIdx == 0) {
+        srcA.y -= 100.0f;
+        srcA.z += 1000.0f;
+    }
+
+    srcB.x = D_i2_80195740[teamIdx];
+    srcB.y = D_i2_80195750[teamIdx];
+    srcB.z = D_i2_80195760[teamIdx];
+
+    Matrix_MultVec3fNoTranslate(gCalcMatrix, &srcA, &destA);
+    Matrix_MultVec3fNoTranslate(gCalcMatrix, &srcB, &destB);
+
+    Actor_Initialize(this);
+    this->obj.pos.x = player->pos.x + destA.x;
+    this->obj.pos.y = player->pos.y + destA.y;
+    this->obj.pos.z = player->trueZpos + destA.z;
+    this->fwork[0] = destB.x;
+    this->fwork[1] = destB.y;
+    this->fwork[2] = destB.z;
+    this->fwork[7] = RAND_FLOAT(360.0f);
+    this->fwork[8] = RAND_FLOAT(360.0f);
+    this->vel.x = player->vel.x;
+    this->vel.y = player->vel.y;
+    this->vel.z = player->vel.z;
+    this->obj.status = OBJ_INIT;
+    this->obj.id = OBJ_ACTOR_CUTSCENE;
+
+    Object_SetInfo(&this->info, this->obj.id);
+
+    if (teamIdx == 3) {
+        this->animFrame = ACTOR_CS_GREAT_FOX;
+        this->state = 20;
+        this->obj.rot.x = -player->rot.x - 10.0f;
+        this->obj.rot.y = (player->rot.y + 180.0f) - 10.0f;
+        this->fwork[9] = 10.0f;
+    } else {
+        this->obj.rot.z = D_i2_80195770[teamIdx];
+        this->iwork[11] = 1;
+        this->iwork[TEAM_FACE] = sSxTeamFaces[teamIdx];
+        AUDIO_PLAY_SFX(NA_SE_ARWING_ENGINE_FG, this->sfxSource, 4);
+    }
+}
+#endif

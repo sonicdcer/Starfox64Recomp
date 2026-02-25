@@ -1666,4 +1666,12 @@ extern f32 D_i2_80195D88[3];
 extern f32 D_i2_80195D98[3];
 extern s32 D_i2_80195640;
 extern f32 D_i6_801A69AC[20];
+extern f32 D_i2_80195710[4];
+extern f32 D_i2_80195720[4];
+extern f32 D_i2_80195730[4];
+extern f32 D_i2_80195740[4];
+extern f32 D_i2_80195750[4];
+extern f32 D_i2_80195760[4];
+extern f32 D_i2_80195770[3];
+extern s16 sSxTeamFaces[3];
 #endif
