@@ -1777,7 +1777,7 @@ RECOMP_PATCH void SectorX_LevelComplete_SetupTeam(ActorCutscene* this, s32 teamI
     srcA.z = D_i2_80195730[teamIdx];
 
     // @recomp: Hide Falco's spawn behind Fox's Arwing so he doesn't look like he came out of nowhere on widescreen.
-    if (teamIdx == 0) {
+    if ((recomp_get_target_aspect_ratio(4.0f / 3.0f) > 1.66f) && (teamIdx == 0)) {
         srcA.y -= 100.0f;
         srcA.z += 1000.0f;
     }
