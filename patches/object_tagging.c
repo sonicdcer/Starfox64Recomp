@@ -405,6 +405,7 @@ RECOMP_PATCH void Effect_DrawAll(s32 arg0) {
     }
 }
 
+#if 1 // Player Shots
 RECOMP_PATCH void PlayerShot_DrawShot(PlayerShot* shot) {
     Vec3f sp11C = { 0.0f, 0.0f, 0.0f };
     s32 pad[4];
@@ -699,3 +700,67 @@ RECOMP_PATCH void PlayerShot_DrawShot(PlayerShot* shot) {
         gEXPopMatrixGroup(gMasterDisp++, G_MTX_MODELVIEW);
     }
 }
+#endif
+
+#if 1 // Hit Marks
+RECOMP_PATCH void PlayerShot_DrawHitmark(PlayerShot* shot) {
+    Vec3f src = { 0.0f, 0.0f, 0.0f };
+    s32 isDrawn = false;
+
+    Matrix_Translate(gGfxMatrix, shot->obj.pos.x, shot->obj.pos.y, shot->obj.pos.z + gPathProgress, MTXF_APPLY);
+    Matrix_MultVec3f(gGfxMatrix, &src, &sShotViewPos);
+
+    if ((sShotViewPos.z < 0.0f) && (sShotViewPos.z > -10000.0f)) {
+        if (fabsf(sShotViewPos.x) < (fabsf(sShotViewPos.z * 0.5f) + 500.0f)) {
+            if (fabsf(sShotViewPos.y) < (fabsf(sShotViewPos.z * 0.5f) + 500.0f)) {
+                isDrawn = true;
+            }
+        }
+    }
+
+    if (!isDrawn) {
+        if (!gVersusMode) {
+            Object_Kill(&shot->obj, shot->sfxSource);
+            return;
+        }
+    } else {
+        if (gCamera1Skipped) {
+            // Skip
+            // @recomp Tag the transform
+            gEXMatrixGroupDecomposedSkipAll(gMasterDisp++, TAG_PLAYER_SHOT(shot) | 0x01000000, G_EX_PUSH,
+                                            G_MTX_MODELVIEW, G_EX_EDIT_NONE);
+        } else {
+            // @recomp Tag the transform.
+            gEXMatrixGroupDecomposedNormal(gMasterDisp++, TAG_PLAYER_SHOT(shot) | 0x01000000, G_EX_PUSH,
+                                           G_MTX_MODELVIEW, G_EX_EDIT_ALLOW);
+        }
+
+        shot->obj.rot.y = -gPlayer[gPlayerNum].camYaw;
+        Matrix_RotateY(gGfxMatrix, shot->obj.rot.y, MTXF_APPLY);
+        Matrix_Scale(gGfxMatrix, 2.0f, 2.0f, 2.0f, MTXF_APPLY);
+
+        if (shot->obj.id == PLAYERSHOT_7) {
+            Matrix_Scale(gGfxMatrix, 0.2f, 0.2f, 0.2f, MTXF_APPLY);
+        }
+        Matrix_SetGfxMtx(&gMasterDisp);
+        RCP_SetupDL_40();
+
+        switch (shot->unk_60) {
+            case 0:
+                gSPDisplayList(gMasterDisp++, D_1026090);
+                break;
+            case 1:
+                gSPDisplayList(gMasterDisp++, D_1025800);
+                break;
+            case 2:
+                Matrix_Scale(gGfxMatrix, 1.5f, 0.7f, 1.0f, MTXF_APPLY);
+                Matrix_SetGfxMtx(&gMasterDisp);
+                gSPDisplayList(gMasterDisp++, D_1025800);
+                break;
+        }
+
+        // @recomp Pop the transform id.
+        gEXPopMatrixGroup(gMasterDisp++, G_MTX_MODELVIEW);
+    }
+}
+#endif
