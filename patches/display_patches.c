@@ -340,7 +340,17 @@ RECOMP_PATCH void Display_Update(void) {
             gWarpzoneCsFrameCount = 0;
         }
         gWarpzoneCsFrameCount++;
-        UpdateVisPerFrameFromRecording_Warpzone(gWarpzoneCsRecord, ARRAY_COUNT(gWarpzoneCsRecord));
+        UpdateVisPerFrameFromRecording(gWarpzoneCsRecord, ARRAY_COUNT(gWarpzoneCsRecord), &gWarpzoneCsFrameCount);
+    }
+
+    if (gCurrentLevel == LEVEL_AREA_6) {
+        if (gBosses[0].obj.status == OBJ_ACTIVE) {
+            if (gBosses[0].state == 11) {
+                UpdateVisPerFrameFromRecording(gA6GorgonCsRecord, ARRAY_COUNT(gA6GorgonCsRecord),
+                                               &gA6GorgonCsFrameCount);
+                gA6GorgonCsFrameCount++;
+            }
+        }
     }
 
 // @recomp DEBUG SECTION:

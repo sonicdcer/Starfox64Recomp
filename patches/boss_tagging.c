@@ -401,17 +401,6 @@ RECOMP_PATCH void Meteo_MeCrusherShield_Draw(MeCrusherShield* this) {
     gEXPopMatrixGroup(gMasterDisp++, G_MTX_MODELVIEW);
 }
 
-typedef struct {
-    /* 0x00 */ f32 r[3];
-    /* 0x0C */ f32 g[3];
-    /* 0x18 */ f32 b[3];
-    /* 0x24 */ f32 unk_24;
-    /* 0x30 */ f32 unk_28[3];
-    /* 0x3C */ f32 unk_34;
-} UnkStruct_1C22F0;
-
-extern UnkStruct_1C22F0 D_i3_801C22F0;
-
 RECOMP_PATCH void Area6_8018BCD4(Vec3f* arg0, f32 arg1, f32 arg2, Vec3f* arg3, s32 arg4, f32 arg5, s32 arg6, f32 arg7) {
     s32 i;
     Vec3f sp90 = { 0.0f, 0.0f, 0.0f };

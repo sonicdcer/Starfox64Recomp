@@ -6,9 +6,12 @@ typedef struct Record {
     u16 frame;
 } Record;
 
-extern int gWarpzoneCsFrameCount;
-extern Record gWarpzoneCsRecord[19];
+extern long gWarpzoneCsFrameCount;
+extern long gA6GorgonCsFrameCount;
 
-void UpdateVisPerFrameFromRecording_Warpzone(Record* record, s32 maxFrames);
+extern Record gWarpzoneCsRecord[19];
+extern Record gA6GorgonCsRecord[12];
+
+void UpdateVisPerFrameFromRecording(Record* record, s32 maxFrames, long* frameCounter);
 
 #endif

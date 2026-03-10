@@ -24,7 +24,8 @@ void Ending_8018ABE8(void);
 void Ending_8018A570(void);
 bool Ending_8018BCB0(void);
 
-int gWarpzoneCsFrameCount = 0;
+long gWarpzoneCsFrameCount = 0;
+long gA6GorgonCsFrameCount = 0;
 
 // clang-format off
 
@@ -236,43 +237,20 @@ Record gEndingCsRecord[] = {
 };
 // clang-format on
 
-void UpdateVisPerFrameFromRecording(Record* record, s32 maxFrames) {
+Record gA6GorgonCsRecord[12] = {
+    { 3, 0 },  { 4, 3 },  { 5, 6 },  { 4, 37 }, { 5, 38 }, { 4, 44 },
+    { 3, 53 }, { 4, 54 }, { 3, 57 }, { 4, 58 }, { 3, 59 }, { 2, 170 },
+};
+
+void UpdateVisPerFrameFromRecording(Record* record, s32 maxFrames, long* frameCounter) {
     int i;
 
-    if (gCsFrameCount > record[maxFrames - 1].frame) {
+    if (*frameCounter > record[maxFrames - 1].frame) {
         return;
     }
 
     for (i = 0; i < maxFrames; i++) {
-        if (gCsFrameCount == record[i].frame) {
-            gVIsPerFrame = record[i].vis;
-        }
-    }
-}
-
-void UpdateVisPerFrameFromRecording_Warpzone(Record* record, s32 maxFrames) {
-    int i;
-
-    if (gWarpzoneCsFrameCount > record[maxFrames - 1].frame) {
-        return;
-    }
-
-    for (i = 0; i < maxFrames; i++) {
-        if (gWarpzoneCsFrameCount == record[i].frame) {
-            gVIsPerFrame = record[i].vis;
-        }
-    }
-}
-
-void UpdateVisPerFrameFromRecording_Ending(Record* record, s32 maxFrames) {
-    int i;
-
-    if (gGameFrameCount > record[maxFrames - 1].frame) {
-        return;
-    }
-
-    for (i = 0; i < maxFrames; i++) {
-        if (gGameFrameCount == record[i].frame) {
+        if (*frameCounter == record[i].frame) {
             gVIsPerFrame = record[i].vis;
         }
     }
@@ -291,9 +269,9 @@ RECOMP_PATCH void Cutscene_LevelComplete(Player* player) {
 
                 // @recomp: Update VisPerFrame with N64 Recording
                 if (player->csState < 3) {
-                    UpdateVisPerFrameFromRecording(gAndrossRobotKillCutscene1, ARRAY_COUNT(gAndrossRobotKillCutscene1));
+                    UpdateVisPerFrameFromRecording(gAndrossRobotKillCutscene1, ARRAY_COUNT(gAndrossRobotKillCutscene1), &gCsFrameCount);
                 } else if ((player->csState > 2) && player->csState < 6) {
-                    UpdateVisPerFrameFromRecording(gAndrossRobotKillCutscene2, ARRAY_COUNT(gAndrossRobotKillCutscene2));
+                    UpdateVisPerFrameFromRecording(gAndrossRobotKillCutscene2, ARRAY_COUNT(gAndrossRobotKillCutscene2), &gCsFrameCount);
                 }
 
                 Andross_LevelComplete(player);
@@ -318,7 +296,7 @@ RECOMP_PATCH void Cutscene_LevelComplete(Player* player) {
                 Player_FloorCheck(player);
             } else if (gCurrentLevel == LEVEL_SECTOR_Y) {
                 // @recomp: Update VisPerFrame with N64 Recording
-                UpdateVisPerFrameFromRecording(gSyRobotCutsceneRecord, ARRAY_COUNT(gSyRobotCutsceneRecord));
+                UpdateVisPerFrameFromRecording(gSyRobotCutsceneRecord, ARRAY_COUNT(gSyRobotCutsceneRecord), &gCsFrameCount);
                 SectorY_LevelComplete(player);
                 Player_FloorCheck(player);
             } else if (gCurrentLevel == LEVEL_SOLAR) {
@@ -333,14 +311,14 @@ RECOMP_PATCH void Cutscene_LevelComplete(Player* player) {
             } else if (gCurrentLevel == LEVEL_METEO) {
                 if (gLevelPhase == 0) {
                     // @recomp: Update VisPerFrame with N64 Recording
-                    UpdateVisPerFrameFromRecording(gMeCrusherCutsceneRecord, ARRAY_COUNT(gMeCrusherCutsceneRecord));
+                    UpdateVisPerFrameFromRecording(gMeCrusherCutsceneRecord, ARRAY_COUNT(gMeCrusherCutsceneRecord), &gCsFrameCount);
                     Meteo_LevelComplete(player);
                 } else {
                     Cutscene_WarpZoneComplete(player);
                 }
             } else if ((gCurrentLevel == LEVEL_CORNERIA) && (gLevelMode == LEVELMODE_ALL_RANGE)) {
                 // @recomp: Update VisPerFrame with N64 Recording
-                UpdateVisPerFrameFromRecording(gGrangaCutsceneRecord, ARRAY_COUNT(gGrangaCutsceneRecord));
+                UpdateVisPerFrameFromRecording(gGrangaCutsceneRecord, ARRAY_COUNT(gGrangaCutsceneRecord), &gCsFrameCount);
                 Corneria_LevelComplete1(player);
                 Player_FloorCheck(player);
             } else {
@@ -348,7 +326,7 @@ RECOMP_PATCH void Cutscene_LevelComplete(Player* player) {
                     AUDIO_PLAY_BGM(NA_BGM_COURSE_CLEAR);
                 }
                 // @recomp: Update VisPerFrame with N64 Recording
-                UpdateVisPerFrameFromRecording(gCarrierCutsceneRecord, ARRAY_COUNT(gCarrierCutsceneRecord));
+                UpdateVisPerFrameFromRecording(gCarrierCutsceneRecord, ARRAY_COUNT(gCarrierCutsceneRecord), &gCsFrameCount);
                 Cutscene_CoComplete2(player);
                 Player_FloorCheck(player);
             }
@@ -368,7 +346,7 @@ RECOMP_PATCH void Cutscene_LevelComplete(Player* player) {
                 Titania_LevelComplete(player);
             } else if (gMissionStatus != MISSION_COMPLETE) {
                 // @recomp: Update VisPerFrame with N64 Recording
-                UpdateVisPerFrameFromRecording(gMacbethCutsceneRecord, ARRAY_COUNT(gMacbethCutsceneRecord));
+                UpdateVisPerFrameFromRecording(gMacbethCutsceneRecord, ARRAY_COUNT(gMacbethCutsceneRecord), &gCsFrameCount);
                 Macbeth_LevelComplete2(player);
             } else {
                 Macbeth_LevelComplete1(player);
@@ -435,7 +413,7 @@ RECOMP_PATCH void Ending_Main(void) {
     Ending_8018ABE8();
 
     // @recomp: Update VisPerFrame with N64 Recording
-    UpdateVisPerFrameFromRecording_Ending(gEndingCsRecord, ARRAY_COUNT(gEndingCsRecord));
+    UpdateVisPerFrameFromRecording(gEndingCsRecord, ARRAY_COUNT(gEndingCsRecord), &gGameFrameCount);
 }
 
 RECOMP_PATCH void Ending_8018D250(u32 arg0, AssetInfo* asset) {
@@ -444,3 +422,53 @@ RECOMP_PATCH void Ending_8018D250(u32 arg0, AssetInfo* asset) {
     //  gVIsPerFrame = asset->unk_70;
     gStarCount = asset->unk_14;
 }
+
+RECOMP_PATCH void Area6_A6Gorgon_Init(A6Gorgon* this) {
+    Hitbox* hitbox;
+    s32 i;
+
+    gBossActive = true;
+    gProjectFar = 25000.0f;
+    gBossFrameCount = 0;
+
+    // @recomp: Vi recording
+    gA6GorgonCsFrameCount = 1;
+
+    this->health = 780;
+
+    this->fwork[2] = this->fwork[34] = 2.0f;
+    this->fwork[35] = 1.2f;
+
+    this->swork[25] = 3;
+    this->swork[15 + 0] = this->swork[15 + 1] = this->swork[15 + 2] = 40;
+    this->swork[18 + 0] = this->swork[18 + 1] = this->swork[18 + 2] = 3;
+
+    for (i = 0; i < 40; i++) {
+        D_i3_801C2250[i] = 0;
+    }
+
+    D_i3_801C22F0.unk_24 = D_i3_801C22F0.unk_28[0] = D_i3_801C22F0.unk_28[2] = D_i3_801C22F0.unk_28[1] = 255.0f;
+    D_i3_801C22F0.unk_34 = 0.0f;
+
+    this->swork[27 + 0] = this->swork[27 + 1] = this->swork[27 + 2] = 0;
+    this->swork[22] = 32;
+    this->swork[23] = 32;
+    this->swork[24] = 255;
+
+    this->fwork[29] = 255.0f;
+    this->fwork[3] = -1700.0f;
+    this->fwork[5] = 30.0f;
+    this->fwork[32] = 1.0f;
+
+    this->timer_050 = 500;
+
+    A6_HIT_1(this, 0)->z.size = A6_HIT_1(this, 1)->z.size = A6_HIT_1(this, 2)->z.size = 195.0f;
+    A6_HIT_1(this, 0)->y.size = A6_HIT_1(this, 1)->y.size = A6_HIT_1(this, 2)->y.size = 147.0f;
+    A6_HIT_1(this, 0)->x.size = A6_HIT_1(this, 1)->x.size = A6_HIT_1(this, 2)->x.size = 153.0f;
+
+    SEQCMD_STOP_SEQUENCE(SEQ_PLAYER_BGM, 40);
+    SEQCMD_STOP_SEQUENCE(SEQ_PLAYER_FANFARE, 40);
+
+    AUDIO_PLAY_SFX(NA_SE_EN_SHIELD_ROLL_LEVEL, this->sfxSource, 4);
+}
+

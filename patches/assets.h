@@ -4,6 +4,10 @@
 #include "patches.h"
 #include "fox_map.h"
 
+#define A6_HIT_0(bossA6) ((Hitbox*) ((bossA6)->info.hitbox + 1))
+#define A6_HIT_1(bossA6, index) ((Hitbox*) ((f32*) (A6_HIT_0(bossA6) + 1) + 6 * (index)))
+
+
 typedef struct UnkStruct_D_i4_801A03E0 {
     f32 unk_00;
     f32 unk_04;
@@ -114,6 +118,16 @@ typedef struct AssetInfo {
     /* 0x70 */ u8 unk_70;
     /* 0x71 */ u8 unk_71;
 } AssetInfo; // size = 0x72
+
+typedef struct {
+    /* 0x00 */ f32 r[3];
+    /* 0x0C */ f32 g[3];
+    /* 0x18 */ f32 b[3];
+    /* 0x24 */ f32 unk_24;
+    /* 0x30 */ f32 unk_28[3];
+    /* 0x3C */ f32 unk_34;
+} UnkStruct_1C22F0;
+
 
 extern u8 sPlayersVisible[];
 extern f32 sMaTrainSpeedTarget;
@@ -1676,4 +1690,7 @@ extern f32 D_i2_80195750[4];
 extern f32 D_i2_80195760[4];
 extern f32 D_i2_80195770[3];
 extern s16 sSxTeamFaces[3];
+extern s32 D_i3_801C2250[40];
+extern UnkStruct_1C22F0 D_i3_801C22F0;
+
 #endif
