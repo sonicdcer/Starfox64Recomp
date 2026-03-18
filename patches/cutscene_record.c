@@ -18,6 +18,7 @@
 void Cutscene_WarpZoneComplete(Player* player);
 void Cutscene_FortunaComplete(Player* player);
 void Cutscene_CoComplete2(Player* player);
+void Cutscene_PathTexScroll(Player* player);
 void Ending_8018A8FC(void);
 void Ending_8018B3D8(void);
 void Ending_8018ABE8(void);
@@ -235,12 +236,32 @@ Record gEndingCsRecord[] = {
     { 3, 6793 },
     { 2, 6799 },
 };
-// clang-format on
 
 Record gA6GorgonCsRecord[12] = {
     { 3, 0 },  { 4, 3 },  { 5, 6 },  { 4, 37 }, { 5, 38 }, { 4, 44 },
     { 3, 53 }, { 4, 54 }, { 3, 57 }, { 4, 58 }, { 3, 59 }, { 2, 170 },
 };
+
+Record gSolarIntroCsRecord[16] = {
+    { 2, 0   },
+    { 3, 94  },
+    { 2, 105 },
+    { 3, 362 },
+    { 4, 377 },
+    { 3, 379 },
+    { 4, 381 },
+    { 2, 382 },
+    { 3, 443 },
+    { 2, 444 },
+    { 3, 456 },
+    { 2, 492 },
+    { 3, 494 },
+    { 2, 499 },
+    { 3, 552 },
+    { 2, 629 },
+};
+
+// clang-format on
 
 void UpdateVisPerFrameFromRecording(Record* record, s32 maxFrames, long* frameCounter) {
     int i;
@@ -269,9 +290,11 @@ RECOMP_PATCH void Cutscene_LevelComplete(Player* player) {
 
                 // @recomp: Update VisPerFrame with N64 Recording
                 if (player->csState < 3) {
-                    UpdateVisPerFrameFromRecording(gAndrossRobotKillCutscene1, ARRAY_COUNT(gAndrossRobotKillCutscene1), &gCsFrameCount);
+                    UpdateVisPerFrameFromRecording(gAndrossRobotKillCutscene1, ARRAY_COUNT(gAndrossRobotKillCutscene1),
+                                                   &gCsFrameCount);
                 } else if ((player->csState > 2) && player->csState < 6) {
-                    UpdateVisPerFrameFromRecording(gAndrossRobotKillCutscene2, ARRAY_COUNT(gAndrossRobotKillCutscene2), &gCsFrameCount);
+                    UpdateVisPerFrameFromRecording(gAndrossRobotKillCutscene2, ARRAY_COUNT(gAndrossRobotKillCutscene2),
+                                                   &gCsFrameCount);
                 }
 
                 Andross_LevelComplete(player);
@@ -296,7 +319,8 @@ RECOMP_PATCH void Cutscene_LevelComplete(Player* player) {
                 Player_FloorCheck(player);
             } else if (gCurrentLevel == LEVEL_SECTOR_Y) {
                 // @recomp: Update VisPerFrame with N64 Recording
-                UpdateVisPerFrameFromRecording(gSyRobotCutsceneRecord, ARRAY_COUNT(gSyRobotCutsceneRecord), &gCsFrameCount);
+                UpdateVisPerFrameFromRecording(gSyRobotCutsceneRecord, ARRAY_COUNT(gSyRobotCutsceneRecord),
+                                               &gCsFrameCount);
                 SectorY_LevelComplete(player);
                 Player_FloorCheck(player);
             } else if (gCurrentLevel == LEVEL_SOLAR) {
@@ -311,14 +335,16 @@ RECOMP_PATCH void Cutscene_LevelComplete(Player* player) {
             } else if (gCurrentLevel == LEVEL_METEO) {
                 if (gLevelPhase == 0) {
                     // @recomp: Update VisPerFrame with N64 Recording
-                    UpdateVisPerFrameFromRecording(gMeCrusherCutsceneRecord, ARRAY_COUNT(gMeCrusherCutsceneRecord), &gCsFrameCount);
+                    UpdateVisPerFrameFromRecording(gMeCrusherCutsceneRecord, ARRAY_COUNT(gMeCrusherCutsceneRecord),
+                                                   &gCsFrameCount);
                     Meteo_LevelComplete(player);
                 } else {
                     Cutscene_WarpZoneComplete(player);
                 }
             } else if ((gCurrentLevel == LEVEL_CORNERIA) && (gLevelMode == LEVELMODE_ALL_RANGE)) {
                 // @recomp: Update VisPerFrame with N64 Recording
-                UpdateVisPerFrameFromRecording(gGrangaCutsceneRecord, ARRAY_COUNT(gGrangaCutsceneRecord), &gCsFrameCount);
+                UpdateVisPerFrameFromRecording(gGrangaCutsceneRecord, ARRAY_COUNT(gGrangaCutsceneRecord),
+                                               &gCsFrameCount);
                 Corneria_LevelComplete1(player);
                 Player_FloorCheck(player);
             } else {
@@ -326,7 +352,8 @@ RECOMP_PATCH void Cutscene_LevelComplete(Player* player) {
                     AUDIO_PLAY_BGM(NA_BGM_COURSE_CLEAR);
                 }
                 // @recomp: Update VisPerFrame with N64 Recording
-                UpdateVisPerFrameFromRecording(gCarrierCutsceneRecord, ARRAY_COUNT(gCarrierCutsceneRecord), &gCsFrameCount);
+                UpdateVisPerFrameFromRecording(gCarrierCutsceneRecord, ARRAY_COUNT(gCarrierCutsceneRecord),
+                                               &gCsFrameCount);
                 Cutscene_CoComplete2(player);
                 Player_FloorCheck(player);
             }
@@ -346,7 +373,8 @@ RECOMP_PATCH void Cutscene_LevelComplete(Player* player) {
                 Titania_LevelComplete(player);
             } else if (gMissionStatus != MISSION_COMPLETE) {
                 // @recomp: Update VisPerFrame with N64 Recording
-                UpdateVisPerFrameFromRecording(gMacbethCutsceneRecord, ARRAY_COUNT(gMacbethCutsceneRecord), &gCsFrameCount);
+                UpdateVisPerFrameFromRecording(gMacbethCutsceneRecord, ARRAY_COUNT(gMacbethCutsceneRecord),
+                                               &gCsFrameCount);
                 Macbeth_LevelComplete2(player);
             } else {
                 Macbeth_LevelComplete1(player);
@@ -362,6 +390,91 @@ RECOMP_PATCH void Cutscene_LevelComplete(Player* player) {
                 Aquas_CsLevelComplete(player);
             }
             break;
+    }
+}
+
+RECOMP_PATCH void Cutscene_LevelStart(Player* player) {
+    gCsFrameCount++;
+    if (gLevelMode == LEVELMODE_ON_RAILS) {
+        switch (gCurrentLevel) {
+            case LEVEL_CORNERIA:
+                Corneria_LevelStart(player);
+                Player_FloorCheck(player);
+                break;
+
+            case LEVEL_METEO:
+                Meteo_LevelStart(player);
+                break;
+
+            case LEVEL_SECTOR_X:
+                SectorX_LevelStart(player);
+                break;
+
+            case LEVEL_TITANIA:
+                Titania_LevelStart(player);
+                Player_FloorCheck(player);
+                break;
+
+            case LEVEL_ZONESS:
+                Zoness_LevelStart(player);
+                break;
+
+            case LEVEL_MACBETH:
+                Macbeth_LevelStart(player);
+                break;
+
+            case LEVEL_SECTOR_Y:
+                SectorY_LevelStart(player);
+                break;
+
+            case LEVEL_SOLAR:
+                // @recomp: Update VisPerFrame with N64 Recording
+                UpdateVisPerFrameFromRecording(gSolarIntroCsRecord, ARRAY_COUNT(gSolarIntroCsRecord), &gCsFrameCount);
+                Solar_LevelStart(player);
+                break;
+
+            case LEVEL_VENOM_1:
+                Venom1_LevelStart(player);
+                Player_FloorCheck(player);
+                break;
+
+            case LEVEL_AQUAS:
+                Aquas_CsLevelStart(player);
+                break;
+
+            case LEVEL_AREA_6:
+                Area6_LevelStart(player);
+                break;
+        }
+        Cutscene_PathTexScroll(player);
+    } else {
+        switch (gCurrentLevel) {
+            case LEVEL_FORTUNA:
+                AllRange_FortunaIntro(player);
+                Player_FloorCheck(player);
+                break;
+
+            case LEVEL_VENOM_2:
+                Venom2_LevelStart(player);
+                Player_FloorCheck(player);
+                break;
+
+            case LEVEL_BOLSE:
+                Bolse_LevelStart(player);
+                Player_FloorCheck(player);
+                break;
+
+            case LEVEL_KATINA:
+                Katina_LevelStart(player);
+                Player_FloorCheck(player);
+                break;
+
+            case LEVEL_SECTOR_Z:
+                SectorZ_LevelStart(player);
+
+            default:
+                break;
+        }
     }
 }
 
@@ -471,4 +584,3 @@ RECOMP_PATCH void Area6_A6Gorgon_Init(A6Gorgon* this) {
 
     AUDIO_PLAY_SFX(NA_SE_EN_SHIELD_ROLL_LEVEL, this->sfxSource, 4);
 }
-
