@@ -13,6 +13,15 @@ Join the [N64: Recompiled Community Discord](https://discord.gg/AWZThJ4dPf) to d
 
 ### **This repository and its releases do not contain game assets. The original game is required to build or run this project.**
 
+### Playtesting
+If you want to playtest a continuous integration build, you can find them at the links below. Keep in mind that these are for playtesting only, and should be taken as a work-in-progress before a new release. 
+
+* [Windows](https://nightly.link/sonicdcer/Starfox64Recomp/workflows/validate-internal/main/Starfox64Recompiled-Windows-RelWithDebInfo.zip)
+* [macOS](https://nightly.link/sonicdcer/Starfox64Recomp/workflows/validate-internal/main/Starfox64Recompiled-macOS-Release.zip)
+* [Linux-ARM64](https://nightly.link/sonicdcer/Starfox64Recomp/workflows/validate-internal/main/Starfox64Recompiled-Linux-ARM64-Release.zip)
+* [Linux-x64](https://nightly.link/sonicdcer/Starfox64Recomp/workflows/validate-internal/main/Starfox64Recompiled-Linux-X64-Release.zip)
+* [Linux-Flatpak-x64](https://nightly.link/sonicdcer/Starfox64Recomp/workflows/validate-internal/main/Starfox64Recompiled-Flatpak-X64-Release.zip)
+
 ## Table of Contents
 * [System Requirements](#system-requirements)
 * [Features](#features)
