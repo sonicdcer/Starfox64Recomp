@@ -478,7 +478,7 @@ std::string get_game_thread_name(const OSThread* t) {
             name += "TIMER";
             break;
 
-        case 8:
+        case THREAD_ID_SERIAL:
             name += "SERIAL";
             break;
 
@@ -713,8 +713,8 @@ int main(int argc, char** argv) {
     }
 
     // Register fonts.
-    recompui::register_primary_font("ChiaroNormal.otf", "Chiaro");
-    recompui::register_extra_font("ChiaroBold.otf");
+    recompui::register_primary_font("LatoLatin-Regular.ttf", "LatoLatin");
+    recompui::register_extra_font("LatoLatin-Bold.ttf");
 
     recomp::register_config_path(recompui::file::get_app_folder_path());
 
@@ -733,10 +733,10 @@ int main(int argc, char** argv) {
     REGISTER_FUNC(recomp_get_invert_y_axis_mode);
     REGISTER_FUNC(recomp_get_radio_comm_box_mode);
     REGISTER_FUNC(recomp_get_camera_inputs);
-    REGISTER_FUNC(recomp_get_targeting_mode);
+    // REGISTER_FUNC(recomp_get_targeting_mode);
     REGISTER_FUNC(recomp_get_bgm_volume);
     REGISTER_FUNC(recomp_get_sfx_volume);
-    REGISTER_FUNC(recomp_get_low_health_beeps_enabled);
+    // REGISTER_FUNC(recomp_get_low_health_beeps_enabled);
     REGISTER_FUNC(recomp_get_gyro_deltas);
     REGISTER_FUNC(recomp_get_mouse_deltas);
     REGISTER_FUNC(recomp_get_inverted_axes);
