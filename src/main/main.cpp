@@ -65,7 +65,8 @@
 
 const std::string version_string = "1.0.3";
 
-template <typename... Ts> void exit_error(const char* str, Ts... args) {
+template <typename... Ts> 
+void exit_error(const char* str, Ts... args) {
     // TODO pop up an error
     ((void) fprintf(stderr, str, args), ...);
     assert(false);
@@ -90,8 +91,9 @@ ultramodern::gfx_callbacks_t::gfx_data_t create_gfx() {
     return {};
 }
 
+#if 1
 ultramodern::input::connected_device_info_t get_connected_device_info(int controller_num) {
-    if (recompinput::players::is_single_player_mode() || recompinput::players::get_player_is_assigned(controller_num)) {
+    if (controller_num < recompinput::players::get_max_number_of_players()) {
         return ultramodern::input::connected_device_info_t{
             .connected_device = ultramodern::input::Device::Controller,
             .connected_pak = ultramodern::input::Pak::RumblePak,
@@ -103,6 +105,38 @@ ultramodern::input::connected_device_info_t get_connected_device_info(int contro
         .connected_pak = ultramodern::input::Pak::None,
     };
 }
+#else
+ultramodern::input::connected_device_info_t get_connected_device_info(int controller_num) {
+    if (recompinput::players::is_single_player_mode()) {
+        if (controller_num == 0) {
+            return ultramodern::input::connected_device_info_t{
+                .connected_device = ultramodern::input::Device::Controller,
+                .connected_pak = ultramodern::input::Pak::RumblePak,
+            };
+        }
+        else {
+            return ultramodern::input::connected_device_info_t{
+                .connected_device = ultramodern::input::Device::None,
+                .connected_pak = ultramodern::input::Pak::None,
+            };
+        }
+    }
+    else {
+        if (recompinput::players::get_player_is_assigned(controller_num)) {
+            return ultramodern::input::connected_device_info_t{
+                .connected_device = ultramodern::input::Device::Controller,
+                .connected_pak = ultramodern::input::Pak::RumblePak,
+            };
+        }
+        else {
+            return ultramodern::input::connected_device_info_t{
+                .connected_device = ultramodern::input::Device::None,
+                .connected_pak = ultramodern::input::Pak::None,
+            };
+        }
+    }
+}
+#endif
 
 #include "icon_bytes.h"
 
@@ -700,6 +734,7 @@ int main(int argc, char** argv) {
     REGISTER_FUNC(recomp_get_camera_inputs);
     REGISTER_FUNC(recomp_get_targeting_mode);
     REGISTER_FUNC(recomp_get_bgm_volume);
+    REGISTER_FUNC(recomp_get_sfx_volume);
     REGISTER_FUNC(recomp_get_low_health_beeps_enabled);
     REGISTER_FUNC(recomp_get_gyro_deltas);
     REGISTER_FUNC(recomp_get_mouse_deltas);
