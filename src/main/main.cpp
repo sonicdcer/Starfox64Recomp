@@ -82,7 +82,7 @@ ultramodern::gfx_callbacks_t::gfx_data_t create_gfx() {
     SDL_SetHint(SDL_HINT_MOUSE_FOCUS_CLICKTHROUGH, "1");
     SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS, "1");
 
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER) > 0) {
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER | SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC) > 0) {
         exit_error("Failed to initialize SDL2: %s\n", SDL_GetError());
     }
 
@@ -269,8 +269,7 @@ void queue_samples(int16_t* audio_data, size_t sample_count) {
 
     // Convert the audio from 16-bit values to floats and swap the audio channels into the
     // swap buffer to correct for the address xor caused by endianness handling.
-    float cur_main_volume =
-        recompui::config::sound::get_main_volume() / 100.0f; // Get the current main volume, normalized to 0.0-1.0.
+    float cur_main_volume = static_cast<float>(recompui::config::sound::get_main_volume()) / 100.0f; // Get the current main volume, normalized to 0.0-1.0.
     for (size_t i = 0; i < sample_count; i += input_channels) {
         swap_buffer[i + 0 + duplicated_input_frames * input_channels] =
             audio_data[i + 1] * (1.0f / 32768.0f) * cur_main_volume;
@@ -421,13 +420,25 @@ std::vector<recomp::GameEntry> supported_games = {
     },
 };
 
+typedef enum {
+    /* 0 */ THREAD_ID_SYSTEM,
+    /* 1 */ THREAD_ID_IDLE,
+    /* 2 */ THREAD_ID_FAULT,
+    /* 3 */ THREAD_ID_MAIN,
+    /* 4 */ THREAD_ID_4,
+    /* 5 */ THREAD_ID_AUDIO,
+    /* 6 */ THREAD_ID_GRAPHICS,
+    /* 7 */ THREAD_ID_TIMER,
+    /* 8 */ THREAD_ID_SERIAL,
+} ThreadID;
+
 // TODO: move somewhere else
 namespace zelda64 {
 std::string get_game_thread_name(const OSThread* t) {
     std::string name = "[Game] ";
 
     switch (t->id) {
-        case 0:
+        case THREAD_ID_SYSTEM:
             switch (t->priority) {
                 case 150:
                     name += "PIMGR";
@@ -443,56 +454,32 @@ std::string get_game_thread_name(const OSThread* t) {
             }
             break;
 
-        case 1:
+        case THREAD_ID_IDLE:
             name += "IDLE";
             break;
 
-        case 2:
-            switch (t->priority) {
-                case 5:
-                    name += "SLOWLY";
-                    break;
-
-                case 127:
-                    name += "FAULT";
-                    break;
-
-                default:
-                    name += std::to_string(t->id);
-                    break;
-            }
+        case THREAD_ID_FAULT:
+            name += "FAULT";
             break;
 
-        case 3:
+        case THREAD_ID_MAIN:
             name += "MAIN";
             break;
+            
+        case THREAD_ID_AUDIO:
+            name += "AUDIO";
+            break;
 
-        case 4:
+        case THREAD_ID_GRAPHICS:
             name += "GRAPH";
             break;
 
-        case 5:
-            name += "SCHED";
+        case THREAD_ID_TIMER:
+            name += "TIMER";
             break;
 
-        case 7:
-            name += "PADMGR";
-            break;
-
-        case 10:
-            name += "AUDIOMGR";
-            break;
-
-        case 13:
-            name += "FLASHROM";
-            break;
-
-        case 18:
-            name += "DMAMGR";
-            break;
-
-        case 19:
-            name += "IRQMGR";
+        case 8:
+            name += "SERIAL";
             break;
 
         default:
@@ -621,6 +608,20 @@ void disable_texture_pack(recomp::mods::ModContext&, const recomp::mods::ModHand
 
 void reorder_texture_pack(recomp::mods::ModContext&) {
     recompui::renderer::trigger_texture_pack_update();
+}
+
+void on_launcher_init(recompui::LauncherMenu *menu) {
+    auto game_options_menu = menu->init_game_options_menu(
+        supported_games[0].game_id,
+        supported_games[0].mod_game_id,
+        supported_games[0].display_name,
+        supported_games[0].thumbnail_bytes,
+        recompui::GameOptionsMenuLayout::Right
+    );
+    game_options_menu->add_default_options();
+
+    recompui::Element *menu_container = menu->get_menu_container();
+    zelda64::launcher_animation_setup(menu);
 }
 
 #define REGISTER_FUNC(name) recomp::overlays::register_base_export(#name, name)
