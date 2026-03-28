@@ -22,13 +22,13 @@ extern "C" void sqrtf_recomp(uint8_t* rdram, recomp_context* ctx) {
     ctx->f0.fl = sqrtf(ctx->f12.fl);
 }
 
-extern "C" void __ll_rshift_recomp(uint8_t * rdram, recomp_context * ctx) {
+extern "C" void __ll_rshift_recomp(uint8_t* rdram, recomp_context* ctx) {
     int64_t a = (ctx->r4 << 32) | ((ctx->r5 << 0) & 0xFFFFFFFFu);
     int64_t b = (ctx->r6 << 32) | ((ctx->r7 << 0) & 0xFFFFFFFFu);
     int64_t ret = a >> b;
 
-    ctx->r2 = (int32_t)(ret >> 32);
-    ctx->r3 = (int32_t)(ret >> 0);
+    ctx->r2 = (int32_t) (ret >> 32);
+    ctx->r3 = (int32_t) (ret >> 0);
 }
 
 extern "C" void recomp_puts(uint8_t* rdram, recomp_context* ctx) {
@@ -36,7 +36,7 @@ extern "C" void recomp_puts(uint8_t* rdram, recomp_context* ctx) {
     u32 length = _arg<1, u32>(rdram, ctx);
 
     for (u32 i = 0; i < length; i++) {
-        fputc(MEM_B(i, (gpr)cur_str), stdout);
+        fputc(MEM_B(i, (gpr) cur_str), stdout);
     }
 }
 
@@ -78,8 +78,8 @@ extern "C" void recomp_get_window_resolution(uint8_t* rdram, recomp_context* ctx
     gpr width_out = _arg<0, PTR(u32)>(rdram, ctx);
     gpr height_out = _arg<1, PTR(u32)>(rdram, ctx);
 
-    MEM_W(0, width_out) = (u32)width;
-    MEM_W(0, height_out) = (u32)height;
+    MEM_W(0, width_out) = (u32) width;
+    MEM_W(0, height_out) = (u32) height;
 }
 
 extern "C" void recomp_get_target_aspect_ratio(uint8_t* rdram, recomp_context* ctx) {
@@ -99,16 +99,15 @@ extern "C" void recomp_get_target_aspect_ratio(uint8_t* rdram, recomp_context* c
     }
 }
 
+#if 0
 extern "C" void recomp_get_targeting_mode(uint8_t* rdram, recomp_context* ctx) {
-    _return(ctx, static_cast<int>(zelda64::get_targeting_mode()));
+    _return(ctx, static_cast<int>(zelda64::get_invert_y_axis_mode()));
 }
+#endif
 
 extern "C" void recomp_get_bgm_volume(uint8_t* rdram, recomp_context* ctx) {
     _return(ctx, zelda64::get_bgm_volume() / 100.0f);
 }
-
-int zelda64::get_sfx_volume() {}
-int zelda64::get_voice_volume() {}
 
 extern "C" void recomp_get_sfx_volume(uint8_t* rdram, recomp_context* ctx) {
     _return(ctx, zelda64::get_sfx_volume() / 100.0f);
@@ -118,19 +117,22 @@ extern "C" void recomp_get_voice_volume(uint8_t* rdram, recomp_context* ctx) {
     _return(ctx, zelda64::get_voice_volume() / 100.0f);
 }
 
+#if 0
 extern "C" void recomp_get_low_health_beeps_enabled(uint8_t* rdram, recomp_context* ctx) {
     _return(ctx, static_cast<u32>(zelda64::get_low_health_beeps_enabled()));
 }
+#endif
 
 extern "C" void recomp_time_us(uint8_t* rdram, recomp_context* ctx) {
-    _return(ctx, static_cast<u32>(std::chrono::duration_cast<std::chrono::microseconds>(ultramodern::time_since_start()).count()));
+    _return(ctx, static_cast<u32>(
+                     std::chrono::duration_cast<std::chrono::microseconds>(ultramodern::time_since_start()).count()));
 }
 
 extern "C" void recomp_get_film_grain_enabled(uint8_t* rdram, recomp_context* ctx) {
-   // _return(ctx, static_cast<s32>(zelda64::get_film_grain_mode() == zelda64::FilmGrainMode::On));
+    _return(ctx, static_cast<s32>(zelda64::get_film_grain_mode() == zelda64::FilmGrainMode::On));
 }
 
-extern "C" void recomp_load_overlays(uint8_t * rdram, recomp_context * ctx) {
+extern "C" void recomp_load_overlays(uint8_t* rdram, recomp_context* ctx) {
     u32 rom = _arg<0, u32>(rdram, ctx);
     PTR(void) ram = _arg<1, PTR(void)>(rdram, ctx);
     u32 size = _arg<2, u32>(rdram, ctx);
@@ -138,7 +140,7 @@ extern "C" void recomp_load_overlays(uint8_t * rdram, recomp_context * ctx) {
     load_overlays(rom, ram, size);
 }
 
-extern "C" void recomp_high_precision_fb_enabled(uint8_t * rdram, recomp_context * ctx) {
+extern "C" void recomp_high_precision_fb_enabled(uint8_t* rdram, recomp_context* ctx) {
     _return(ctx, static_cast<s32>(recompui::renderer::RT64HighPrecisionFBEnabled()));
 }
 
@@ -150,28 +152,28 @@ extern "C" void recomp_get_inverted_axes(uint8_t* rdram, recomp_context* ctx) {
     s32* x_out = _arg<0, s32*>(rdram, ctx);
     s32* y_out = _arg<1, s32*>(rdram, ctx);
 
-   //  zelda64::RadioBoxMode mode = zelda64::get_radio_comm_box_mode();
+    //  zelda64::RadioBoxMode mode = zelda64::get_radio_comm_box_mode();
 
     // *x_out = (mode == zelda64::AimInvertMode::InvertX || mode == zelda64::AimInvertMode::InvertBoth);
     // *y_out = (mode == zelda64::AimInvertMode::InvertY || mode == zelda64::AimInvertMode::InvertBoth);
 }
 
 extern "C" void recomp_get_radio_comm_box_mode(uint8_t* rdram, recomp_context* ctx) {
-   // _return<s32>(ctx, zelda64::get_radio_comm_box_mode() == zelda64::RadioBoxMode::Expand);
+    _return(ctx, static_cast<s32>(zelda64::get_radio_comm_mode() == zelda64::RadioCommBoxMode::Expand));
 }
 
 extern "C" void recomp_get_analog_inverted_axes(uint8_t* rdram, recomp_context* ctx) {
     s32* x_out = _arg<0, s32*>(rdram, ctx);
     s32* y_out = _arg<1, s32*>(rdram, ctx);
 
-   // zelda64::AimInvertMode mode = zelda64::get_analog_camera_invert_mode();
+    // zelda64::AimInvertMode mode = zelda64::get_analog_camera_invert_mode();
 
     // *x_out = (mode == zelda64::AimInvertMode::InvertX || mode == zelda64::AimInvertMode::InvertBoth);
     // *y_out = (mode == zelda64::AimInvertMode::InvertY || mode == zelda64::AimInvertMode::InvertBoth);
 }
 
 extern "C" void recomp_get_invert_y_axis_mode(uint8_t* rdram, recomp_context* ctx) {
-  //  _return<s32>(ctx, zelda64::get_invert_y_axis_mode() == zelda64::AimInvertMode::On);
+    _return<s32>(ctx, zelda64::get_invert_y_axis_mode() == zelda64::InvertYAxisMode::On);
 }
 
 extern "C" void recomp_get_camera_inputs(uint8_t* rdram, recomp_context* ctx) {
@@ -191,8 +193,7 @@ extern "C" void recomp_get_camera_inputs(uint8_t* rdram, recomp_context* ctx) {
     if (magnitude < radial_deadzone) {
         *x_out = 0.0f;
         *y_out = 0.0f;
-    }
-    else {
+    } else {
         float x_normalized = x / magnitude;
         float y_normalized = y / magnitude;
 

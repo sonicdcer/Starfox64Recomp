@@ -68,18 +68,49 @@ static void add_general_options(recomp::config::Config &config) {
         true
     );
 
-    // targeting_mode
-    static EnumOptionVector targeting_mode_options = {
-        {zelda64::TargetingMode::Switch, "Switch"},
-        {zelda64::TargetingMode::Hold, "Hold"},
+    // Film Grain
+    static EnumOptionVector film_grain_options = {
+        {zelda64::FilmGrainMode::On, "On"},
+        {zelda64::FilmGrainMode::Off, "Off"},
     };
+
     config.add_enum_option(
-        zelda64::configkeys::general::targeting_mode,
-        "Targeting Mode",
-        "Controls how targeting enemies and objects works. <recomp-color primary>Switch</recomp-color> will start or stop targeting each time the target button is pressed. <recomp-color primary>Hold</recomp-color> will start when the target button is pressed and stop when the button is released.",
-        targeting_mode_options,
-        zelda64::TargetingMode::Switch
+        zelda64::configkeys::general::film_grain_mode,
+        "Film Grain",
+        "Adds a visual effect that simulates the random grain you see in old film or high-ISO camera footage. <recomp-color primary>On</recomp-color> is the default and matches the original game.",
+        film_grain_options,
+        zelda64::InvertYAxisMode::On
     );
+
+    // Invert Y Axis
+    static EnumOptionVector invert_y_axis_options = {
+        {zelda64::InvertYAxisMode::On, "On"},
+        {zelda64::InvertYAxisMode::Off, "Off"},
+    };
+
+    config.add_enum_option(
+        zelda64::configkeys::general::invert_y_axis,
+        "Invert Y Axis",
+        "Inverts the Y axis aiming controls. <recomp-color primary>On</recomp-color> is the default and matches the original game.",
+        invert_y_axis_options,
+        zelda64::InvertYAxisMode::On
+    );
+
+    // Radio Communication Box
+    static EnumOptionVector radio_comm_options = {
+        {zelda64::RadioCommBoxMode::Expand, "Expand"},
+        {zelda64::RadioCommBoxMode::Original, "Original"},
+    };
+
+    config.add_enum_option(
+        zelda64::configkeys::general::radio_comm_mode,
+        "Radio Communication Box",
+        "Radio Communication Box Alignment.",
+        radio_comm_options,
+        zelda64::RadioCommBoxMode::Original
+    );
+
+    #if 0
 
     // autosave_mode
     static EnumOptionVector autosave_mode_options = {
@@ -145,20 +176,26 @@ static void add_general_options(recomp::config::Config &config) {
         analog_camera_invert_mode_options,
         zelda64::CameraInvertMode::InvertNone
     );
+    #endif
 }
 
 bool zelda64::get_debug_mode_enabled() {
     return get_general_config_bool_value(zelda64::configkeys::general::debug_mode);
 }
 
-zelda64::AutosaveMode zelda64::get_autosave_mode() {
-    return get_general_config_enum_value<zelda64::AutosaveMode>(zelda64::configkeys::general::autosave_mode);
+zelda64::FilmGrainMode zelda64::get_film_grain_mode() {
+    return get_general_config_enum_value<zelda64::FilmGrainMode>(zelda64::configkeys::general::film_grain_mode);
 }
 
-zelda64::TargetingMode zelda64::get_targeting_mode() {
-    return get_general_config_enum_value<zelda64::TargetingMode>(zelda64::configkeys::general::targeting_mode);
+zelda64::RadioCommBoxMode zelda64::get_radio_comm_mode() {
+    return get_general_config_enum_value<zelda64::RadioCommBoxMode>(zelda64::configkeys::general::radio_comm_mode);
 }
 
+zelda64::InvertYAxisMode zelda64::get_invert_y_axis_mode() {
+    return get_general_config_enum_value<zelda64::InvertYAxisMode>(zelda64::configkeys::general::invert_y_axis);
+}
+
+#if 0
 zelda64::CameraInvertMode zelda64::get_camera_invert_mode() {
     return get_general_config_enum_value<zelda64::CameraInvertMode>(zelda64::configkeys::general::camera_invert_mode);
 }
@@ -167,9 +204,11 @@ zelda64::AnalogCamMode zelda64::get_analog_cam_mode() {
     return get_general_config_enum_value<zelda64::AnalogCamMode>(zelda64::configkeys::general::analog_cam_mode);
 }
 
+
 zelda64::CameraInvertMode zelda64::get_analog_camera_invert_mode() {
     return get_general_config_enum_value<zelda64::CameraInvertMode>(zelda64::configkeys::general::analog_camera_invert_mode);
 }
+#endif
 
 static void add_graphics_options(recomp::config::Config &config) {
     using EnumOptionVector = const std::vector<recomp::config::ConfigOptionEnumOption>;
@@ -185,6 +224,14 @@ static void add_sound_options(recomp::config::Config &config) {
         zelda64::configkeys::sound::bgm_volume,
         "Background Music Volume",
         "Controls the overall volume of background music.",
+        100.0f
+    );
+
+    // voice_volume
+    config.add_percent_number_option(
+        zelda64::configkeys::sound::voice_volume,
+        "Voice Volume",
+        "Controls the overall volume of voices.",
         100.0f
     );
 
@@ -220,34 +267,91 @@ int zelda64::get_sfx_volume() {
     return get_sound_config_number_value<int>(zelda64::configkeys::sound::sfx_volume);
 }
 
+int zelda64::get_voice_volume() {
+    return get_sound_config_number_value<int>(zelda64::configkeys::sound::voice_volume);
+}
+
+#if 0
 bool zelda64::get_low_health_beeps_enabled() {
     return get_sound_config_enum_value<zelda64::LowHealthBeepsMode>(zelda64::configkeys::sound::low_health_beeps) == zelda64::LowHealthBeepsMode::On;
 }
+#endif
 
 static void set_control_defaults() {
-    // Nothing to do here.
+    using namespace recompinput;
+
+    set_default_mapping_for_controller(
+        GameInput::C_DOWN,
+        { 
+            InputField::controller_digital(SDL_CONTROLLER_BUTTON_EAST),
+            InputField::controller_analog(SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_TRIGGERLEFT, true)
+        }
+    );
+
+    set_default_mapping_for_controller(
+        GameInput::C_LEFT,
+        { 
+            InputField::controller_digital(SDL_CONTROLLER_BUTTON_NORTH),
+            InputField::controller_analog(SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_TRIGGERRIGHT, true)
+        }
+    );
+
+    set_default_mapping_for_controller(
+        GameInput::C_RIGHT,
+        { 
+            InputField::controller_analog(SDL_GameControllerAxis::SDL_CONTROLLER_AXIS_RIGHTX, true),
+            InputField::controller_digital(SDL_CONTROLLER_BUTTON_EAST)
+        }
+    );
+
+        set_default_mapping_for_controller(
+        GameInput::Z,
+        { 
+            InputField::controller_digital(SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_LEFTSHOULDER)
+        }
+    );
+
+    set_default_mapping_for_controller(
+        GameInput::R,
+        { 
+            InputField::controller_digital(SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_RIGHTSHOULDER)
+        }
+    );
+
+    // L3 -> L | Unused in SF64 but can be used in mods
+    set_default_mapping_for_controller(GameInput::L, { InputField::controller_digital(SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_LEFTSTICK) });
 }
 
 static void set_control_descriptions() {
-    // TODO descriptions
-    recompinput::set_game_input_description(recompinput::GameInput::Y_AXIS_POS, "TODO description");
-    recompinput::set_game_input_description(recompinput::GameInput::Y_AXIS_NEG, "TODO description");
-    recompinput::set_game_input_description(recompinput::GameInput::X_AXIS_NEG, "TODO description");
-    recompinput::set_game_input_description(recompinput::GameInput::X_AXIS_POS, "TODO description");
-    recompinput::set_game_input_description(recompinput::GameInput::A,          "TODO description");
-    recompinput::set_game_input_description(recompinput::GameInput::B,          "TODO description");
-    recompinput::set_game_input_description(recompinput::GameInput::Z,          "TODO description");
-    recompinput::set_game_input_description(recompinput::GameInput::L,          "TODO description");
-    recompinput::set_game_input_description(recompinput::GameInput::R,          "TODO description");
-    recompinput::set_game_input_description(recompinput::GameInput::START,      "TODO description");
-    recompinput::set_game_input_description(recompinput::GameInput::C_UP,       "TODO description");
-    recompinput::set_game_input_description(recompinput::GameInput::C_DOWN,     "TODO description");
-    recompinput::set_game_input_description(recompinput::GameInput::C_LEFT,     "TODO description");
-    recompinput::set_game_input_description(recompinput::GameInput::C_RIGHT,    "TODO description");
-    recompinput::set_game_input_description(recompinput::GameInput::DPAD_UP,    "TODO description");
-    recompinput::set_game_input_description(recompinput::GameInput::DPAD_DOWN,  "TODO description");
-    recompinput::set_game_input_description(recompinput::GameInput::DPAD_LEFT,  "TODO description");
-    recompinput::set_game_input_description(recompinput::GameInput::DPAD_RIGHT, "TODO description");
+    recompinput::set_game_input_name(recompinput::GameInput::A, "Laser | (A)");
+    recompinput::set_game_input_name(recompinput::GameInput::B, "Smart Bomb | (B)");
+    recompinput::set_game_input_name(recompinput::GameInput::Z, "Tilt Left | (Z)");
+    recompinput::set_game_input_name(recompinput::GameInput::R, "Tilt Right | (R)");
+    recompinput::set_game_input_name(recompinput::GameInput::START, "Pause | (Start)");
+    recompinput::set_game_input_name(recompinput::GameInput::C_UP, "Camera | (C-UP)");
+    recompinput::set_game_input_name(recompinput::GameInput::C_LEFT, "Turbo | (C-LEFT)");
+    recompinput::set_game_input_name(recompinput::GameInput::C_DOWN, "Brake | (C-DOWN)");
+    recompinput::set_game_input_name(recompinput::GameInput::C_RIGHT, "ROB Message | (C-RIGHT)");
+    recompinput::set_game_input_name(recompinput::GameInput::L, "MOD | (L)");
+
+    recompinput::set_game_input_description(recompinput::GameInput::Y_AXIS_POS, "Used to Aim and steering. Y Axis inversion can be configured in the General tab.");
+    recompinput::set_game_input_description(recompinput::GameInput::Y_AXIS_NEG, "Used to Aim and steering. Y Axis inversion can be configured in the General tab.");
+    recompinput::set_game_input_description(recompinput::GameInput::X_AXIS_NEG, "Used to Aim and steering.");
+    recompinput::set_game_input_description(recompinput::GameInput::X_AXIS_POS, "Used to Aim and steering.");
+    recompinput::set_game_input_description(recompinput::GameInput::A,          "Used to shoot.");
+    recompinput::set_game_input_description(recompinput::GameInput::B,          "Used to shoot smart bombs");
+    recompinput::set_game_input_description(recompinput::GameInput::Z,          "Arwing: Tilt Left. Landmaster: Left thruster. Double tap to Do a Barrel Roll!");
+    recompinput::set_game_input_description(recompinput::GameInput::R,          "Arwing: Tilt Right. Landmaster: Left thruster. Double tap to Do a Barrel Roll!");
+    recompinput::set_game_input_description(recompinput::GameInput::L,          "Unused. Mods may use it for additional features.");
+    recompinput::set_game_input_description(recompinput::GameInput::START,      "Used for pausing and for skipping certain cutscenes.");
+    recompinput::set_game_input_description(recompinput::GameInput::C_UP,       "Used to change the camera mode.");
+    recompinput::set_game_input_description(recompinput::GameInput::C_DOWN,     "Used to Brake.");
+    recompinput::set_game_input_description(recompinput::GameInput::C_LEFT,     "Used to Accelerate.");
+    recompinput::set_game_input_description(recompinput::GameInput::C_RIGHT,    "Used to respond to incoming messages from ROB.");
+    recompinput::set_game_input_description(recompinput::GameInput::DPAD_UP,    "Used for in-game menu navigation.");
+    recompinput::set_game_input_description(recompinput::GameInput::DPAD_DOWN,  "Used for in-game menu navigation.");
+    recompinput::set_game_input_description(recompinput::GameInput::DPAD_LEFT,  "Used for in-game menu navigation.");
+    recompinput::set_game_input_description(recompinput::GameInput::DPAD_RIGHT, "Used for in-game menu navigation.");
 }
 
 void zelda64::init_config() {
@@ -259,8 +363,8 @@ void zelda64::init_config() {
 
     recompui::config::GeneralTabOptions general_options{};
     general_options.has_rumble_strength = true;
-    general_options.has_gyro_sensitivity = true;
-    general_options.has_mouse_sensitivity = true;
+    general_options.has_gyro_sensitivity = false;
+    general_options.has_mouse_sensitivity = false;
 
     auto &general_config = recompui::config::create_general_tab(general_options);
     add_general_options(general_config);
