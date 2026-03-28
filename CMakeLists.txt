@@ -148,11 +148,7 @@ set (SOURCES
     ${CMAKE_SOURCE_DIR}/src/main/theme.cpp
 
     ${CMAKE_SOURCE_DIR}/src/game/config.cpp
-    ${CMAKE_SOURCE_DIR}/src/game/scene_table.cpp
-    ${CMAKE_SOURCE_DIR}/src/game/debug.cpp
-    ${CMAKE_SOURCE_DIR}/src/game/quicksaving.cpp
     ${CMAKE_SOURCE_DIR}/src/game/recomp_api.cpp
-    ${CMAKE_SOURCE_DIR}/src/game/recomp_actor_api.cpp
     ${CMAKE_SOURCE_DIR}/src/game/recomp_data_api.cpp
     ${CMAKE_SOURCE_DIR}/src/game/rom_decompression.cpp
 
