@@ -188,6 +188,15 @@ static void add_sound_options(recomp::config::Config &config) {
         100.0f
     );
 
+    // sfx_volume
+    config.add_percent_number_option(
+        zelda64::configkeys::sound::sfx_volume,
+        "Sound Effects Volume",
+        "Controls the overall volume of sound effects.",
+        100.0f
+    );
+
+    #if 0
     // low_health_beeps
     static EnumOptionVector low_health_beeps_mode_options = {
         {zelda64::LowHealthBeepsMode::Off, "Off"},
@@ -200,10 +209,15 @@ static void add_sound_options(recomp::config::Config &config) {
         low_health_beeps_mode_options,
         zelda64::LowHealthBeepsMode::On
     );
+    #endif
 }
 
 int zelda64::get_bgm_volume() {
     return get_sound_config_number_value<int>(zelda64::configkeys::sound::bgm_volume);
+}
+
+int zelda64::get_sfx_volume() {
+    return get_sound_config_number_value<int>(zelda64::configkeys::sound::sfx_volume);
 }
 
 bool zelda64::get_low_health_beeps_enabled() {

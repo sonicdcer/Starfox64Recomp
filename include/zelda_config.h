@@ -23,6 +23,7 @@ namespace zelda64 {
 
         namespace sound {
             inline const std::string bgm_volume = "bgm_volume";
+            inline const std::string sfx_volume = "sfx_volume";
             inline const std::string low_health_beeps = "low_health_beeps";
         }
 
