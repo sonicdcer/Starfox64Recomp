@@ -27,15 +27,22 @@
 #undef Always
 #endif
 
-#include "recomp_ui.h"
-#include "recomp_input.h"
+#include "recompui/recompui.h"
+#include "recompui/program_config.h"
+#include "recompui/renderer.h"
+#include "recompui/config.h"
+#include "util/file.h"
+#include "recompinput/input_events.h"
+#include "recompinput/recompinput.h"
+#include "recompinput/profiles.h"
 #include "zelda_config.h"
 #include "zelda_sound.h"
-#include "zelda_render.h"
 #include "zelda_support.h"
 #include "zelda_game.h"
+#include "zelda_launcher.h"
 #include "recomp_data.h"
 #include "ovl_patches.hpp"
+#include "theme.h"
 #include "librecomp/game.hpp"
 #include "librecomp/mods.hpp"
 #include "librecomp/helpers.hpp"
@@ -58,7 +65,8 @@
 
 const std::string version_string = "1.0.3";
 
-template <typename... Ts> void exit_error(const char* str, Ts... args) {
+template <typename... Ts> 
+void exit_error(const char* str, Ts... args) {
     // TODO pop up an error
     ((void) fprintf(stderr, str, args), ...);
     assert(false);
@@ -74,7 +82,7 @@ ultramodern::gfx_callbacks_t::gfx_data_t create_gfx() {
     SDL_SetHint(SDL_HINT_MOUSE_FOCUS_CLICKTHROUGH, "1");
     SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS, "1");
 
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER) > 0) {
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER | SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC) > 0) {
         exit_error("Failed to initialize SDL2: %s\n", SDL_GetError());
     }
 
@@ -83,9 +91,56 @@ ultramodern::gfx_callbacks_t::gfx_data_t create_gfx() {
     return {};
 }
 
-#if defined(__gnu_linux__)
+#if 1
+ultramodern::input::connected_device_info_t get_connected_device_info(int controller_num) {
+    if (controller_num < recompinput::players::get_max_number_of_players()) {
+        return ultramodern::input::connected_device_info_t{
+            .connected_device = ultramodern::input::Device::Controller,
+            .connected_pak = ultramodern::input::Pak::RumblePak,
+        };
+    }
+
+    return ultramodern::input::connected_device_info_t{
+        .connected_device = ultramodern::input::Device::None,
+        .connected_pak = ultramodern::input::Pak::None,
+    };
+}
+#else
+ultramodern::input::connected_device_info_t get_connected_device_info(int controller_num) {
+    if (recompinput::players::is_single_player_mode()) {
+        if (controller_num == 0) {
+            return ultramodern::input::connected_device_info_t{
+                .connected_device = ultramodern::input::Device::Controller,
+                .connected_pak = ultramodern::input::Pak::RumblePak,
+            };
+        }
+        else {
+            return ultramodern::input::connected_device_info_t{
+                .connected_device = ultramodern::input::Device::None,
+                .connected_pak = ultramodern::input::Pak::None,
+            };
+        }
+    }
+    else {
+        if (recompinput::players::get_player_is_assigned(controller_num)) {
+            return ultramodern::input::connected_device_info_t{
+                .connected_device = ultramodern::input::Device::Controller,
+                .connected_pak = ultramodern::input::Pak::RumblePak,
+            };
+        }
+        else {
+            return ultramodern::input::connected_device_info_t{
+                .connected_device = ultramodern::input::Device::None,
+                .connected_pak = ultramodern::input::Pak::None,
+            };
+        }
+    }
+}
+#endif
+
 #include "icon_bytes.h"
 
+#if defined(__gnu_linux__)
 bool SetImageAsIcon(const char* filename, SDL_Window* window) {
     // Read data
     int width, height, bytesPerPixel;
@@ -144,16 +199,6 @@ ultramodern::renderer::WindowHandle create_window(ultramodern::gfx_callbacks_t::
 
     window =
         SDL_CreateWindow("Starfox 64: Recompiled", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1600, 960, flags);
-#if defined(__linux__)
-    SetImageAsIcon("icons/512.png", window);
-    if (ultramodern::renderer::get_graphics_config().wm_option ==
-        ultramodern::renderer::WindowMode::Fullscreen) { // TODO: Remove once RT64 gets native fullscreen support on
-                                                         // Linux
-        SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
-    } else {
-        SDL_SetWindowFullscreen(window, 0);
-    }
-#endif
 
     if (window == nullptr) {
         exit_error("Failed to create window: %s\n", SDL_GetError());
@@ -162,6 +207,10 @@ ultramodern::renderer::WindowHandle create_window(ultramodern::gfx_callbacks_t::
     SDL_SysWMinfo wmInfo;
     SDL_VERSION(&wmInfo.version);
     SDL_GetWindowWMInfo(window, &wmInfo);
+
+#if defined(__linux__)
+    SetImageAsIcon("icons/512.png", window);
+#endif
 
 #if defined(_WIN32)
     return ultramodern::renderer::WindowHandle{ wmInfo.info.win.window, GetCurrentThreadId() };
@@ -176,7 +225,7 @@ ultramodern::renderer::WindowHandle create_window(ultramodern::gfx_callbacks_t::
 }
 
 void update_gfx(void*) {
-    recomp::handle_events();
+    recompinput::handle_events();
 }
 
 static SDL_AudioCVT audio_convert;
@@ -220,7 +269,7 @@ void queue_samples(int16_t* audio_data, size_t sample_count) {
 
     // Convert the audio from 16-bit values to floats and swap the audio channels into the
     // swap buffer to correct for the address xor caused by endianness handling.
-    float cur_main_volume = zelda64::get_main_volume() / 100.0f; // Get the current main volume, normalized to 0.0-1.0.
+    float cur_main_volume = static_cast<float>(recompui::config::sound::get_main_volume()) / 100.0f; // Get the current main volume, normalized to 0.0-1.0.
     for (size_t i = 0; i < sample_count; i += input_channels) {
         swap_buffer[i + 0 + duplicated_input_frames * input_channels] =
             audio_data[i + 1] * (1.0f / 32768.0f) * cur_main_volume;
@@ -358,9 +407,11 @@ std::vector<recomp::GameEntry> supported_games = {
     {
         .rom_hash = 0x163fd3fc3813f54eULL,
         .internal_name = "STARFOX64",
+        .display_name = "Starfox 64",
         .game_id = u8"sf64.n64.us.1.1",
         .mod_game_id = "sf64",
         .save_type = recomp::SaveType::Eep4k,
+        .thumbnail_bytes = std::span<const char>(icon_bytes),
         .is_enabled = true,
         .decompression_routine = zelda64::decompress_sf64,
         .has_compressed_code = true,
@@ -369,13 +420,25 @@ std::vector<recomp::GameEntry> supported_games = {
     },
 };
 
+typedef enum {
+    /* 0 */ THREAD_ID_SYSTEM,
+    /* 1 */ THREAD_ID_IDLE,
+    /* 2 */ THREAD_ID_FAULT,
+    /* 3 */ THREAD_ID_MAIN,
+    /* 4 */ THREAD_ID_4,
+    /* 5 */ THREAD_ID_AUDIO,
+    /* 6 */ THREAD_ID_GRAPHICS,
+    /* 7 */ THREAD_ID_TIMER,
+    /* 8 */ THREAD_ID_SERIAL,
+} ThreadID;
+
 // TODO: move somewhere else
 namespace zelda64 {
 std::string get_game_thread_name(const OSThread* t) {
     std::string name = "[Game] ";
 
     switch (t->id) {
-        case 0:
+        case THREAD_ID_SYSTEM:
             switch (t->priority) {
                 case 150:
                     name += "PIMGR";
@@ -391,56 +454,32 @@ std::string get_game_thread_name(const OSThread* t) {
             }
             break;
 
-        case 1:
+        case THREAD_ID_IDLE:
             name += "IDLE";
             break;
 
-        case 2:
-            switch (t->priority) {
-                case 5:
-                    name += "SLOWLY";
-                    break;
-
-                case 127:
-                    name += "FAULT";
-                    break;
-
-                default:
-                    name += std::to_string(t->id);
-                    break;
-            }
+        case THREAD_ID_FAULT:
+            name += "FAULT";
             break;
 
-        case 3:
+        case THREAD_ID_MAIN:
             name += "MAIN";
             break;
+            
+        case THREAD_ID_AUDIO:
+            name += "AUDIO";
+            break;
 
-        case 4:
+        case THREAD_ID_GRAPHICS:
             name += "GRAPH";
             break;
 
-        case 5:
-            name += "SCHED";
+        case THREAD_ID_TIMER:
+            name += "TIMER";
             break;
 
-        case 7:
-            name += "PADMGR";
-            break;
-
-        case 10:
-            name += "AUDIOMGR";
-            break;
-
-        case 13:
-            name += "FLASHROM";
-            break;
-
-        case 18:
-            name += "DMAMGR";
-            break;
-
-        case 19:
-            name += "IRQMGR";
+        case THREAD_ID_SERIAL:
+            name += "SERIAL";
             break;
 
         default:
@@ -545,7 +584,7 @@ void release_preload(PreloadContext& context) {
     context = {};
 }
 
-#else
+#elif defined(__linux__) || defined(APPLE)
 
 struct PreloadContext {};
 
@@ -560,15 +599,29 @@ void release_preload(PreloadContext& context) {
 #endif
 
 void enable_texture_pack(recomp::mods::ModContext& context, const recomp::mods::ModHandle& mod) {
-    zelda64::renderer::enable_texture_pack(context, mod);
+    recompui::renderer::enable_texture_pack(context, mod);
 }
 
 void disable_texture_pack(recomp::mods::ModContext&, const recomp::mods::ModHandle& mod) {
-    zelda64::renderer::disable_texture_pack(mod);
+    recompui::renderer::disable_texture_pack(mod);
 }
 
 void reorder_texture_pack(recomp::mods::ModContext&) {
-    zelda64::renderer::trigger_texture_pack_update();
+    recompui::renderer::trigger_texture_pack_update();
+}
+
+void on_launcher_init(recompui::LauncherMenu *menu) {
+    auto game_options_menu = menu->init_game_options_menu(
+        supported_games[0].game_id,
+        supported_games[0].mod_game_id,
+        supported_games[0].display_name,
+        supported_games[0].thumbnail_bytes,
+        recompui::GameOptionsMenuLayout::Right
+    );
+    game_options_menu->add_default_options();
+
+    recompui::Element *menu_container = menu->get_menu_container();
+    zelda64::launcher_animation_setup(menu);
 }
 
 #define REGISTER_FUNC(name) recomp::overlays::register_base_export(#name, name)
@@ -642,6 +695,13 @@ int main(int argc, char** argv) {
     std::filesystem::current_path("/var/data", ec);
 #endif
 
+    // Initialize native file dialogs.
+    NFD_Init();
+
+    // Initialize program settings.
+    recompui::programconfig::set_program_name(zelda64::program_name);
+    recompui::programconfig::set_program_id(zelda64::program_id);
+
     // Initialize SDL audio and set the output frequency.
     SDL_InitSubSystem(SDL_INIT_AUDIO);
     reset_audio(48000);
@@ -652,7 +712,11 @@ int main(int argc, char** argv) {
         fprintf(stderr, "Failed to load controller mappings: %s\n", SDL_GetError());
     }
 
-    recomp::register_config_path(zelda64::get_app_folder_path());
+    // Register fonts.
+    recompui::register_primary_font("LatoLatin-Regular.ttf", "LatoLatin");
+    recompui::register_extra_font("LatoLatin-Bold.ttf");
+
+    recomp::register_config_path(recompui::file::get_app_folder_path());
 
     // Register supported games and patches
     for (const auto& game : supported_games) {
@@ -669,9 +733,10 @@ int main(int argc, char** argv) {
     REGISTER_FUNC(recomp_get_invert_y_axis_mode);
     REGISTER_FUNC(recomp_get_radio_comm_box_mode);
     REGISTER_FUNC(recomp_get_camera_inputs);
-    REGISTER_FUNC(recomp_get_targeting_mode);
+    // REGISTER_FUNC(recomp_get_targeting_mode);
     REGISTER_FUNC(recomp_get_bgm_volume);
-    REGISTER_FUNC(recomp_get_low_health_beeps_enabled);
+    REGISTER_FUNC(recomp_get_sfx_volume);
+    // REGISTER_FUNC(recomp_get_low_health_beeps_enabled);
     REGISTER_FUNC(recomp_get_gyro_deltas);
     REGISTER_FUNC(recomp_get_mouse_deltas);
     REGISTER_FUNC(recomp_get_inverted_axes);
@@ -681,15 +746,29 @@ int main(int argc, char** argv) {
 
     zelda64::register_overlays();
     zelda64::register_patches();
+
     // recomputil::init_extended_actor_data();
-    zelda64::load_config();
+
+    recompinput::players::set_single_player_mode(true);
+
+    zelda64::init_config();
+
+    recompui::register_launcher_init_callback(on_launcher_init);
+    recompui::register_launcher_update_callback(zelda64::launcher_animation_update);
 
     recomp::rsp::callbacks_t rsp_callbacks{
         .get_rsp_microcode = get_rsp_microcode,
     };
 
     ultramodern::renderer::callbacks_t renderer_callbacks{
-        .create_render_context = zelda64::renderer::create_render_context,
+        .create_render_context =
+            [](uint8_t* rdram, ultramodern::renderer::WindowHandle window_handle, bool developer_mode) {
+                auto presentation_mode = ultramodern::renderer::PresentationMode::PresentEarly;
+                std::unique_ptr<recompui::renderer::RT64Context> render_context =
+                    recompui::renderer::create_render_context(rdram, window_handle, presentation_mode, developer_mode);
+                render_context->set_post_blend_negative_dither_noise(true);
+                return std::unique_ptr<ultramodern::renderer::RendererContext>(std::move(render_context));
+            },
     };
 
     ultramodern::gfx_callbacks_t gfx_callbacks{
@@ -705,15 +784,15 @@ int main(int argc, char** argv) {
     };
 
     ultramodern::input::callbacks_t input_callbacks{
-        .poll_input = recomp::poll_inputs,
-        .get_input = recomp::get_n64_input,
-        .set_rumble = recomp::set_rumble,
-        .get_connected_device_info = recomp::get_connected_device_info,
+        .poll_input = recompinput::poll_inputs,
+        .get_input = recompinput::profiles::get_n64_input,
+        .set_rumble = recompinput::set_rumble,
+        .get_connected_device_info = get_connected_device_info,
     };
 
     ultramodern::events::callbacks_t thread_callbacks{
-        .vi_callback = recomp::update_rumble,
-        .gfx_init_callback = recompui::update_supported_options,
+        .vi_callback = recompinput::update_rumble,
+        .gfx_init_callback = nullptr,
     };
 
     ultramodern::error_handling::callbacks_t error_handling_callbacks{
@@ -752,6 +831,9 @@ int main(int argc, char** argv) {
     };
 
     recomp::start(cfg);
+
+    // recomp::start(project_version, {}, rsp_callbacks, renderer_callbacks, audio_callbacks, input_callbacks,
+    //               gfx_callbacks, thread_callbacks, error_handling_callbacks, threads_callbacks);
 
     NFD_Quit();
 
