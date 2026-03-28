@@ -753,6 +753,9 @@ int main(int argc, char** argv) {
 
     zelda64::init_config();
 
+    recompui::register_launcher_init_callback(on_launcher_init);
+    recompui::register_launcher_update_callback(zelda64::launcher_animation_update);
+
     recomp::rsp::callbacks_t rsp_callbacks{
         .get_rsp_microcode = get_rsp_microcode,
     };
