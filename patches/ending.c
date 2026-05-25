@@ -21,6 +21,8 @@ void Ending_80191700(u32 arg0, AssetInfo* asset);
 void Ending_80191710(u32 arg0, AssetInfo* asset);
 void Ending_80191C58(u32 arg0, AssetInfo* asset);
 void Ending_80191C7C(u32 arg0, AssetInfo* asset);
+void Ending_801924EC(u32 arg0);
+void Ending_80192164(u32 arg0);
 bool Ending_8018BCB0(void);
 void Ending_8018A570(void);
 void Ending_8018A8FC(void);
@@ -327,4 +329,61 @@ RECOMP_PATCH void Ending_Draw(void) {
     Graphics_DisplaySmallText(10 + 210, 200, 1.0f, 1.0f, "ENDSTATE:");
     Graphics_DisplaySmallNumber(60 + 220, 210, (int) D_ending_80196D00);
 #endif
+}
+
+RECOMP_PATCH void Ending_80191234(u32 arg0, AssetInfo* asset) {
+    gLastGameState = GSTATE_ENDING;
+    gGameState = GSTATE_MENU;
+    gNextGameStateTimer = 2;
+    gOptionMenuStatus = OPTION_WAIT;
+    gDrawMode = DRAW_NONE;
+    gBgColor = 0;
+    gStarCount = 0;
+    gControllerLock = 10;
+
+    // @recomp: Ending seen at least once, record in Save File.
+    gSaveFile.save.data.padEE[0] = 1;
+    Save_Write();
+}
+
+// There is one more change for this in RECOMP_PATCH Ending_Main, see cutscene_record.c
+
+RECOMP_PATCH void Ending_801926D4(void) {
+    // @recomp: Disable controller lock if the ending has been seen at least once.
+    if (gSaveFile.save.data.padEE[0] == 1) {
+        gControllerLock = 0;
+    } else {
+        gControllerLock = 10000;
+    }
+
+    Matrix_Push(&gGfxMatrix);
+
+    Ending_801924EC(D_ending_80192E70);
+    Ending_80192164(D_ending_80192E70);
+
+    Matrix_Pop(&gGfxMatrix);
+
+    D_ending_80192E70++;
+
+    if ((0 <= D_ending_80192E70) && (D_ending_80192E70 < 100)) {
+        D_ending_80192E70 = 100;
+        if (!gClearPlayerInfo) {
+            D_ending_80198590 = gPlayer[0].arwing;
+        } else {
+            D_ending_80198590.rightWingState = D_ending_80198590.leftWingState = WINGSTATE_INTACT;
+        }
+        AUDIO_PLAY_BGM(NA_BGM_STAFF_ROLL);
+    }
+
+    if ((2790 <= D_ending_80192E70) && (D_ending_80192E70 < 3000)) {
+        D_ending_80192E70 = 3099;
+    }
+
+    if ((4890 < D_ending_80192E70) && (D_ending_80192E70 < 4999)) {
+        D_ending_80192E70 = 4999;
+    }
+
+    if ((5000 <= D_ending_80192E70) && (D_ending_80192E70 < 5096)) {
+        D_ending_80192E70 = 5096;
+    }
 }
