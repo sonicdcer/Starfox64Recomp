@@ -284,6 +284,31 @@ RECOMP_PATCH void Object_DrawAll(s32 cullDirection) {
 }
 #endif
 
+#if 1
+RECOMP_PATCH bool func_enmy_80060FE4(Vec3f* arg0, f32 arg1) {
+    Vec3f src;
+    Vec3f dest;
+
+    if ((gLevelMode != LEVELMODE_ALL_RANGE) && (gPlayer[0].state != PLAYERSTATE_LEVEL_INTRO)) {
+        return true;
+    }
+
+    Matrix_RotateY(gCalcMatrix, gPlayer[gPlayerNum].camYaw, MTXF_NEW);
+
+    src.x = arg0->x - gPlayer[gPlayerNum].cam.eye.x;
+    src.y = 0.0f;
+    src.z = arg0->z - gPlayer[gPlayerNum].cam.eye.z;
+
+    Matrix_MultVec3fNoTranslate(gCalcMatrix, &src, &dest);
+
+    // @recomp: Extend draw distance up to 32/9
+    if ((dest.z < 1000.0f) && (arg1 < dest.z) && (fabsf(dest.x) < (fabsf(dest.z * /* 0.5f */ 1.5f) + 2000.0f))) {
+        return true;
+    }
+    return false;
+}
+#endif
+
 Gfx SETUPDL_62_POINT[] = {
     gsDPPipeSync(),
     gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |

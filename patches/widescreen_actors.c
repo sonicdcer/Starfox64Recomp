@@ -273,7 +273,7 @@ RECOMP_PATCH void Scenery360_Draw(Scenery360* this) {
         goto check;
     }
 
-    if ((gCurrentLevel != LEVEL_SECTOR_Y) && (gCurrentLevel != LEVEL_VENOM_ANDROSS)) {
+    if (/* (gCurrentLevel != LEVEL_SECTOR_Y) && */ (gCurrentLevel != LEVEL_VENOM_ANDROSS)) {
         goto render;
     }
 
@@ -303,7 +303,7 @@ check:
     }
 }
 
-/*
+
 void SectorY_8019AEC0(SyShogun*);
 void SectorY_80198244(SyShogun*);
 extern f32 D_SY_60342A0[];
@@ -311,7 +311,6 @@ extern f32 D_SY_6034304[];
 extern Gfx aSySaruzinDL[];
 
 RECOMP_PATCH void SectorY_SyShogun_Init(SyShogun* this) {
-    gScenery360[0].info.dList = NULL; // @recomp initialize dList to NULL to avoid crash
     this->fwork[9] = 0.0f;
     this->swork[33] = 5500;
     this->timer_050 = 10;
@@ -330,9 +329,12 @@ RECOMP_PATCH void SectorY_SyShogun_Init(SyShogun* this) {
         if (gPlayer[0].state == PLAYERSTATE_START_360) {
             this->obj.pos.z = -28900.0f;
             gScenery360[0].obj.pos.z = -30000.0f;
+
+            // @recomp: initialize dList to its corresponding DL to fix crash with expanded draw distance.
+            gScenery360[0].info.dList = aSySaruzinDL;
         }
 
-        this->rot_078.y = 0.0f;
+        this->orient.y = 0.0f;
         SectorY_8019AEC0(this);
     } else {
         this->fwork[34] = 2.8f;
@@ -343,13 +345,13 @@ RECOMP_PATCH void SectorY_SyShogun_Init(SyShogun* this) {
         this->fwork[45] = 35.0f;
 
         if (this->index == 1) {
-            this->rot_078.y = 15.0f;
+            this->orient.y = 15.0f;
         } else {
-            this->rot_078.y = 345.0f;
+            this->orient.y = 345.0f;
         }
 
-        this->vel.x = SIN_DEG(this->rot_078.y) * this->fwork[45] * 0.2f;
-        this->vel.z = COS_DEG(this->rot_078.y) * this->fwork[45] * 0.2f;
+        this->vel.x = SIN_DEG(this->orient.y) * this->fwork[45] * 0.2f;
+        this->vel.z = COS_DEG(this->orient.y) * this->fwork[45] * 0.2f;
         SectorY_80198244(this);
         this->timer_056 = 250;
     }
@@ -364,7 +366,7 @@ RECOMP_PATCH void SectorY_SyShogun_Init(SyShogun* this) {
         Object_Kill(&this->obj, this->sfxSource);
     }
 }
-*/
+
 #endif
 
 /**

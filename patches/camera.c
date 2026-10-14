@@ -91,7 +91,7 @@ bool should_interpolate_perspective(Vec3f* eye, Vec3f* at) {
                 at_velocity.y = 0.0f;
                 at_velocity.z = 0.0f;
 
-                recomp_printf("velocity_diff: %f\n at_dist: %f\n eye_dist: %f\n", velocity_diff, at_dist, eye_dist);
+                // recomp_printf("velocity_diff: %f\n at_dist: %f\n eye_dist: %f\n", velocity_diff, at_dist, eye_dist);
                 return false;
             }
             break;
@@ -105,7 +105,7 @@ bool should_interpolate_perspective(Vec3f* eye, Vec3f* at) {
                 at_velocity.y = 0.0f;
                 at_velocity.z = 0.0f;
 
-                recomp_printf("velocity_diff: %f\n at_dist: %f\n eye_dist: %f\n", velocity_diff, at_dist, eye_dist);
+                // recomp_printf("velocity_diff: %f\n at_dist: %f\n eye_dist: %f\n", velocity_diff, at_dist, eye_dist);
                 return false;
             }
             break;

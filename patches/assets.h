@@ -638,6 +638,7 @@ extern Gfx aMeMeteoTunnelDL[];
 extern Gfx aBarrelRollTex[];
 extern Gfx aMapPlanetExplosionDL[];
 extern ArwingInfo gActorTeamArwing;
+extern ArwingInfo D_ending_80198590;
 extern f32 sZoFwork[150];
 extern Gfx* D_i3_801BF92C[6];
 extern Gfx* D_i3_801BF944[6];

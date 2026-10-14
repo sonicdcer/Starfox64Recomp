@@ -8,7 +8,17 @@
 void AudioHeap_UnapplySampleCache(SampleCacheEntry* entry, Sample* sample);
 
 SPTask* sNewAudioTasks_recomp[2];
+#if DEBUG_EU_AUDIO == 1 && DEBUG_AUDIO_LOCALIZATION == 1
+extern u8 gTextCharTextures_SPA[][104];
 
+RECOMP_PATCH void Message_DisplayChar(Gfx** gfxPtr, u16 msgChar, s32 xpos, s32 ypos) {
+    gDPLoadTextureBlock_4b((*gfxPtr)++, gTextCharTextures_SPA[msgChar >> 2], G_IM_FMT_CI, 16, 13, msgChar % 4U,
+    G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD,
+    G_TX_NOLOD);
+    gSPTextureRectangle((*gfxPtr)++, xpos << 2, ypos << 2, (xpos + 13) << 2, (ypos + 13) << 2, G_TX_RENDERTILE, 64, 0,
+    1024, 1024);
+}
+#endif
 // @recomp Fix undefined behaviour in audio, present in the original game
 RECOMP_PATCH void AudioHeap_DiscardSampleCaches(void) {
     s32 fontId;

@@ -12,6 +12,7 @@
 #define audio_seq_localized audio_seq_jp
 #define audio_bank_localized audio_bank_jp
 #define audio_table_localized audio_table_jp
+#define gAudioSpecs_localized gAudioSpecs
 #define gSeqTableInit_localized gSeqTableInit_jp
 #define gSoundFontTableInit_localized gSoundFontTableInit_jp
 #define gSampleBankTableInit_localized gSampleBankTableInit_jp
@@ -26,6 +27,7 @@
 #define audio_seq_localized audio_seq_us
 #define audio_bank_localized audio_bank_us
 #define audio_table_localized audio_table_us
+#define gAudioSpecs_localized gAudioSpecs
 #define gSeqTableInit_localized gSeqTableInit
 #define gSoundFontTableInit_localized gSoundFontTableInit
 #define gSampleBankTableInit_localized gSampleBankTableInit
@@ -34,14 +36,22 @@
 
 #if DEBUG_EU_AUDIO == 1
 #define VERSION_EU
+#if 0 // Original EU ROM
 #include "audio_eu/audio_bank_eu.c"
 #include "audio_eu/audio_seq_eu.c"
 #include "audio_eu/audio_table_eu.c"
+#else // SPANISH MOD
+#include "audio_eu/audio_bank_eu_mod.c"
+#include "audio_eu/audio_seq_eu_mod.c"
+#include "audio_eu/audio_table_eu_mod.c"
+#endif
 #include "audio_eu/audiotables_eu.c"
+#include "audio_eu/audiospecs_eu.c"
 #define audio_seq_localized audio_seq_eu
 #define audio_bank_localized audio_bank_eu
 #define audio_table_localized audio_table_eu
 #define gSeqTableInit_localized gSeqTableInit_eu
+#define gAudioSpecs_localized gAudioSpecs_eu
 #define gSoundFontTableInit_localized gSoundFontTableInit_eu
 #define gSampleBankTableInit_localized gSampleBankTableInit_eu
 #define gSeqFontTableInit_localized gSeqFontTableInit_eu
@@ -49,7 +59,7 @@
 #endif
 
 extern s32 gAudioHeapSize;
-u8 gVoiceLanguage = 1;
+u8 gVoiceLanguage = 0;
 extern unsigned char audio_seq_us[];
 extern unsigned char audio_bank_us[];
 extern unsigned char audio_table_us[];
@@ -133,8 +143,11 @@ RECOMP_PATCH void AudioLoad_Init(void) __attribute__((optnone)) {
     gNumSequences = gSequenceTable->base.numEntries;
 
     // @recomp: use audio tables from data
+    recomp_printf("gSequenceTable->base.numEntries: %d \n", gSequenceTable->base.numEntries);
     AudioLoad_InitTable(gSequenceTable, (u8*) audio_seq_localized, gSequenceMedium);
+    recomp_printf("gSoundFontTable->base.numEntries: %d \n", gSoundFontTable->base.numEntries);
     AudioLoad_InitTable(gSoundFontTable, (u8*) audio_bank_localized, gSoundFontMedium);
+    recomp_printf("gSampleBankTable->base.numEntries: %d \n", gSampleBankTable->base.numEntries);
     AudioLoad_InitTable(gSampleBankTable, (u8*) audio_table_localized, gSampleBankMedium);
 
     numFonts = gSoundFontTable->base.numEntries;
@@ -155,6 +168,192 @@ RECOMP_PATCH void AudioLoad_Init(void) __attribute__((optnone)) {
 
     AudioHeap_InitPool(&gPermanentPool.pool, ramAddr, gPermanentPoolSize);
     AudioSeq_InitSequencePlayers();
+}
+
+RECOMP_PATCH void AudioLoad_InitTable(AudioTable* table, u8* romAddr, u16 unkMediumParam) {
+    s32 i;
+
+    table->base.unkMediumParam = unkMediumParam;
+    table->base.romAddr = (uintptr_t) romAddr;
+
+    for (i = 0; i < table->base.numEntries; i++) {
+        if ((table->entries[i].size != 0) && (table->entries[i].medium == MEDIUM_CART)) {
+            table->entries[i].romAddr += (uintptr_t) romAddr;
+            recomp_printf("table->entries[i].romAddr: %x \n", table->entries[i].romAddr);
+        }
+    }
+}
+#endif
+
+#if DEBUG_EU_AUDIO == 1 && DEBUG_AUDIO_LOCALIZATION == 1
+
+#include "audio_eu\ast_radio_mod.c"
+
+s32 func_radio_800BA7BC(u16* msg, s32 priority);
+
+u16* Message_PtrFromId_SPA(u16 msgId) {
+    s32 i;
+    MsgLookup* lookup = gMsgLookup_SPA;
+
+    while (lookup->msgId != -1) {
+        if (lookup->msgId == msgId) {
+            return lookup->msgPtr;
+        }
+        lookup++;
+    }
+    return NULL;
+}
+
+RECOMP_PATCH void Radio_PlayMessage(u16* msg, RadioCharacterId character) {
+    TeamId teamId;
+    s32 pad;
+    s32 priority;
+
+    gRadioMsgId = Message_IdFromPtr(msg);
+
+    msg = Message_PtrFromId_SPA(gRadioMsgId); // This should get the replacement text pointer
+
+    switch (msg[0]) {
+        default:
+        case MSGCHAR_PRI0:
+            priority = 0;
+            break;
+        case MSGCHAR_PRI1:
+            priority = 1;
+            break;
+        case MSGCHAR_PRI2:
+            priority = 2;
+            break;
+        case MSGCHAR_PRI3:
+            priority = 3;
+            break;
+    }
+
+    if (gGameState == GSTATE_PLAY) {
+        if ((character == RCID_FALCO) || (character == RCID_SLIPPY) || (character == RCID_PEPPY)) {
+            if (character == RCID_FALCO) {
+                teamId = TEAM_ID_FALCO;
+            }
+            if (character == RCID_SLIPPY) {
+                teamId = TEAM_ID_SLIPPY;
+            }
+            if (character == RCID_PEPPY) {
+                teamId = TEAM_ID_PEPPY;
+            }
+            if ((gTeamShields[teamId] <= 0) && (gTeamShields[teamId] != -2)) {
+                return;
+            }
+        }
+    }
+
+    if ((gRadioState != 0) && (func_radio_800BA7BC(msg, priority) == 1)) {
+        return;
+    }
+
+    gRadioMsgPri = priority;
+    gRadioMsgRadioId = character;
+
+    if (gExpertMode && ((character == RCID_FOX) || (character == RCID_FOX_RED))) {
+        gRadioMsgRadioId = RCID_FOX_EXPERT;
+    }
+
+    if (gCurrentLevel == LEVEL_VENOM_2) {
+        switch (character) {
+            case RCID_WOLF:
+                gRadioMsgRadioId = RCID_WOLF_2;
+                break;
+            case RCID_PIGMA:
+                gRadioMsgRadioId = RCID_PIGMA_2;
+                break;
+            case RCID_LEON:
+                gRadioMsgRadioId = RCID_LEON_2;
+                break;
+            case RCID_ANDREW:
+                gRadioMsgRadioId = RCID_ANDREW_2;
+                break;
+        }
+    }
+
+    gRadioMsg = msg;
+    gRadioState = 100;
+
+    switch (gGameState) {
+        case GSTATE_TITLE:
+        case GSTATE_ENDING:
+            gRadioPrintPosY = 176;
+            gRadioPrintPosX = 85;
+            gRadioTextBoxPosX = 80.0f;
+            gRadioTextBoxPosY = 174.0f;
+            gRadioTextBoxScaleX = 4.63f;
+            gRadioPortraitPosX = 32.0f;
+            gRadioPortraitPosY = 174.0f;
+            break;
+
+        case GSTATE_PLAY:
+            gRadioPrintPosY = 180;
+            gRadioPrintPosX = 79;
+            gRadioTextBoxPosX = 74.0f;
+            gRadioTextBoxPosY = 178.0f;
+            gRadioTextBoxScaleX = 4.53f;
+            gRadioPortraitPosX = 26.0f;
+            gRadioPortraitPosY = 178.0f;
+            break;
+    }
+
+//    gRadioMsgId = Message_IdFromPtr(msg);
+    Audio_PlayVoice(gRadioMsgId);
+}
+
+RECOMP_PATCH void Message_DisplayScrollingText(Gfx** gfxPtr, u16* msgPtr, s32 xPos, s32 yPos, s32 yRangeHi, s32 yRangeLo, s32 len) {
+    s32 x = xPos;
+    s32 y = yPos;
+    s32 i;
+
+    msgPtr = Message_PtrFromId_SPA(Message_IdFromPtr(msgPtr)); // This should get the replacement text pointer
+
+    gDPSetTextureLUT((*gfxPtr)++, G_TT_RGBA16);
+    gDPLoadTLUT((*gfxPtr)++, 64, 256, gTextCharPalettes);
+
+    for (i = 0; msgPtr[i] != 0 && i < len; i++) {
+        switch (msgPtr[i]) {
+            case MSGCHAR_NWL:
+                x = xPos;
+                y += 15;
+                break;
+
+            case MSGCHAR_QSP:
+                x += 2;
+                break;
+
+            case MSGCHAR_HSP:
+                x += 3;
+                break;
+
+            case MSGCHAR_SPC:
+                x += 7;
+                break;
+
+            default:
+                if ((yRangeLo < y) && (y < yRangeHi)) {
+                    Message_DisplayChar(gfxPtr, msgPtr[i], x, y);
+                }
+                x += 7;
+                break;
+
+            case MSGCHAR_NP2:
+            case MSGCHAR_NP3:
+            case MSGCHAR_NP4:
+            case MSGCHAR_NP5:
+            case MSGCHAR_NP6:
+            case MSGCHAR_NP7:
+            case MSGCHAR_PRI0:
+            case MSGCHAR_PRI1:
+            case MSGCHAR_PRI2:
+            case MSGCHAR_PRI3:
+            case MSGCHAR_NXT:
+                break;
+        }
+    }
 }
 #endif
 
@@ -311,7 +510,7 @@ s32 osAiSetFrequency(u32 freq);
 RECOMP_PATCH void AudioHeap_Init(void) {
     s32 i;
     s32 j;
-    AudioSpec* spec = &gAudioSpecs[gAudioSpecId];
+    AudioSpec* spec = &((AudioSpec*)gAudioSpecs_localized)[gAudioSpecId];
     ReverbSettings* settings;
     SynthesisReverb* reverb;
     s16* ramAddr;
@@ -1506,7 +1705,7 @@ RECOMP_PATCH Acmd* func_80009B64(Acmd* aList, s32* cmdCount, s16* aiBufStart, s3
         gSynthReverbs[j].curFrame ^= 1;
     }
 
-    *cmdCount = aCmdPtr - aList;
+    *cmdCount = aCmdPtr -n aList;
 
     return aCmdPtr;
 }
@@ -1527,3 +1726,276 @@ RECOMP_PATCH f32 func_80013708(Portamento* portamento) {
     return temp2;
 }
 */
+AudioTable *AudioLoad_GetLoadTable(s32 tableType);void *AudioLoad_SearchCaches(s32 tableType, s32 id);void AudioLoad_SyncDma(u32 devAddr, u8 *ramAddr, u32 size, s32 medium);
+void AudioLoad_SyncDmaUnkMedium(u32 devAddr, u8 *ramAddr, u32 size, s32 diskParam);
+void* AudioLoad_SyncLoad(u32 tableType, u32 id, s32* didAllocate);s32 AudioLoad_GetLoadTableIndex(s32 tableType, u32 entryId);
+Instrument *AudioPlayback_GetInstrumentInner(s32, s32);void Audio_SetSequenceFade(u8 seqPlayId, u8 fadeModId, u8 fadeMod, u8 fadeTime);
+s32 AudioLoad_SyncLoadSample(Sample *sample, s32 fontId);Sample *AudioLoad_GetFontSample(s32 fontId, s32 instId);
+extern AudioSlowLoadBuffer gSlowLoads;extern u8 sSetNextVoiceId;extern u8 sMuteBgmForVoice;extern u32 sNextVoiceId;
+#define MEDIUM_DISK 1
+
+#if 0
+RECOMP_PATCH void AudioLoad_InitTable(AudioTable* table, u8* romAddr, u16 unkMediumParam) {
+    s32 i;
+
+    table->base.unkMediumParam = unkMediumParam;
+    table->base.romAddr = (uintptr_t) romAddr;
+
+    recomp_printf("Table(addr): %x\n", (u32)table);
+    recomp_printf("Entries(dec): %d\n", table->base.numEntries);
+
+    for (i = 0; i < table->base.numEntries; i++) {
+        if ((table->entries[i].size != 0) && (table->entries[i].medium == MEDIUM_CART)) {
+            table->entries[i].romAddr += (uintptr_t) romAddr;
+            recomp_printf("table->entries[i].romAddr: %x \n", table->entries[i].romAddr);
+        }
+    }
+}
+#endif
+
+#if 0
+RECOMP_PATCH
+void Audio_UpdateVoice(void) {
+    s8 voiceBank;
+    u16 voiceId;
+    u8 voiceIdHi;
+    u8 voiceIdLo;
+
+    if (sSetNextVoiceId) {
+        voiceBank = sNextVoiceId / 1000;
+        voiceId = sNextVoiceId % 1000;
+        voiceIdHi = voiceId / 256;
+        voiceIdLo = voiceId % 256;
+        recomp_printf("Audio_UpdateVoice();\n");
+        // recomp_printf("%x\n", ((((AUDIOCMD_OP_CHANNEL_SET_IO) &0xFF) << 0x18) | ((((SEQ_PLAYER_VOICE)) &0xFF) << 0x10) | ((((15)) &0xFF) << 0x8) | ((((0)) &0xFF) << 0)), (1));
+        // 0x6030f00
+        AUDIOCMD_CHANNEL_SET_IO(SEQ_PLAYER_VOICE, 15, 0, 1);
+        // 0x6030f04
+        AUDIOCMD_CHANNEL_SET_IO(SEQ_PLAYER_VOICE, 15, 4, voiceBank);
+        recomp_printf("voiceBank: %d ", voiceBank);
+
+        recomp_printf("voiceId: %d ", voiceId);
+
+        // 0x6030f05
+        AUDIOCMD_CHANNEL_SET_IO(SEQ_PLAYER_VOICE, 15, 5, voiceIdHi);
+        recomp_printf("voiceIdHi: %d ", voiceIdHi);
+        // 0x6030f06
+        AUDIOCMD_CHANNEL_SET_IO(SEQ_PLAYER_VOICE, 15, 6, voiceIdLo);
+        recomp_printf("voiceIdLo: %d\n", voiceIdLo);
+        sSetNextVoiceId = false;
+    } else if ((sMuteBgmForVoice) && (Audio_GetCurrentVoice() == 0)) {
+        Audio_SetSequenceFade(SEQ_PLAYER_BGM, 2, 127, 15);
+        sMuteBgmForVoice = false;
+    }
+}
+#endif
+#if 0
+RECOMP_PATCH
+// Original name: VoiceLoad
+s32 AudioLoad_SlowLoadSample(s32 fontId, u8 instId, s8* status) {
+    Sample* sample;
+    AudioSlowLoad* slowLoad;
+
+    recomp_printf("fontId: %d, instId: %d, status: %d\n", fontId, instId, *status);
+
+    sample = AudioLoad_GetFontSample(fontId, instId);
+    if (sample == NULL) {
+        *status = SLOW_LOAD_STATUS_0;
+        return -1;
+    }
+    if (sample->medium == MEDIUM_RAM) {
+        *status = SLOW_LOAD_STATUS_2;
+        return 0;
+    }
+
+    slowLoad = &gSlowLoads.slowLoad[gSlowLoads.unk_00];
+    if (slowLoad->state == SLOW_LOAD_DONE) {
+        slowLoad->state = SLOW_LOAD_WAITING;
+    }
+
+    slowLoad->sample = *sample;
+    slowLoad->status = status;
+
+    slowLoad->curRamAddr =
+        AudioHeap_AllocTemporarySampleCache(sample->size, fontId, (s32)sample->sampleAddr, sample->medium);
+
+    if (slowLoad->curRamAddr == NULL) {
+        if ((sample->medium == MEDIUM_DISK) || (sample->codec == 2)) {
+            *status = SLOW_LOAD_STATUS_0;
+            return -1;
+        } else {
+            *status = SLOW_LOAD_STATUS_3;
+            return -1;
+        }
+    }
+
+    slowLoad->state = SLOW_LOAD_START;
+    slowLoad->bytesRemaining = ALIGN16(sample->size);
+    slowLoad->ramAddr = slowLoad->curRamAddr;
+    slowLoad->curDevAddr = (u32)sample->sampleAddr;
+    slowLoad->medium = sample->medium;
+    slowLoad->seqOrFontId = fontId;
+    slowLoad->instId = instId;
+
+    gSlowLoads.unk_00 ^= 1;
+
+    return 0;
+}
+#endif
+
+#if 0
+RECOMP_PATCH s32 AudioLoad_SyncLoadInstrument(s32 fontId, s32 instId, s32 drumId) {
+    Instrument* instrument;
+    Drum* drum;
+
+    recomp_printf("fontId: %d, instId: %d, drumId: %d\n", fontId, instId, drumId);
+
+    if (instId < 0x7F) {
+        instrument = Audio_GetInstrument(fontId, instId);
+        if (instrument == NULL) {
+            return -1;
+        }
+        if (instrument->normalRangeLo != 0) {
+            AudioLoad_SyncLoadSample(instrument->lowPitchTunedSample.sample, fontId);
+        }
+        AudioLoad_SyncLoadSample(instrument->normalPitchTunedSample.sample, fontId);
+        if (instrument->normalRangeHi != 0x7F) {
+            AudioLoad_SyncLoadSample(instrument->highPitchTunedSample.sample, fontId);
+        }
+    } else if (instId == 0x7F) {
+        drum = Audio_GetDrum(fontId, drumId);
+        if (drum == NULL) {
+            return -1;
+        }
+        AudioLoad_SyncLoadSample(drum->tunedSample.sample, fontId);
+        return 0;
+    }
+}
+#endif
+
+#if 0
+RECOMP_PATCH 
+void* AudioLoad_SyncLoadSampleBank(u32 sampleBankId, s32* outMedium) {
+    void* ramAddr;
+    AudioTable* sampleBankTable = AudioLoad_GetLoadTable(2);
+    s32 cachePolicy;
+    s32 noLoad;
+
+    recomp_printf("AudioLoad_SyncLoadSampleBank: sampleBankId: %d\n", sampleBankId);
+
+    sampleBankId = AudioLoad_GetLoadTableIndex(SAMPLE_TABLE, sampleBankId);
+    ramAddr = AudioLoad_SearchCaches(2, sampleBankId);
+    if (ramAddr != NULL) {
+        if (gSampleFontLoadStatus[sampleBankId] != 5) {
+            gSampleFontLoadStatus[sampleBankId] = 2;
+        }
+        *outMedium = MEDIUM_RAM;
+        return ramAddr;
+    }
+
+    cachePolicy = sampleBankTable->entries[sampleBankId].cachePolicy;
+    if (cachePolicy == CACHEPOLICY_4) {
+        *outMedium = sampleBankTable->entries[sampleBankId].medium;
+        return (void*)sampleBankTable->entries[sampleBankId].romAddr;
+    }
+
+    ramAddr = AudioLoad_SyncLoad(2, sampleBankId, &noLoad);
+    if (ramAddr != NULL) {
+        *outMedium = MEDIUM_RAM;
+        return (void*)ramAddr;
+    }
+
+    *outMedium = sampleBankTable->entries[sampleBankId].medium;
+
+    return (void*)sampleBankTable->entries[sampleBankId].romAddr;
+}
+#endif
+
+#if 0
+RECOMP_PATCH void* AudioLoad_SyncLoad(u32 tableType, u32 id, s32* didAllocate) {
+    u32 size;
+    AudioTable* table;
+    u8* ramAddr;
+    u32 medium;
+    s32 loadStatus;
+    u32 romAddr;
+    s32 pad;
+    s32 cachePolicy;
+    
+    recomp_printf("AudioLoad_SyncLoad: tableType: %d, id: %d, didAllocate %d\n", tableType, id, *didAllocate);
+
+    ramAddr = AudioLoad_SearchCaches(tableType, id);
+    if (ramAddr != NULL) {
+        loadStatus = 2;
+        *didAllocate = false;
+    } else {
+        table = AudioLoad_GetLoadTable(tableType);
+        size = table->entries[id].size;
+        size = ALIGN16(size);
+        medium = table->entries[id].medium;
+        cachePolicy = table->entries[id].cachePolicy;
+        romAddr = table->entries[id].romAddr;
+
+        switch (cachePolicy) {
+            case CACHEPOLICY_0:
+                ramAddr = AudioHeap_AllocPermanent(tableType, id, size);
+                if (ramAddr == NULL) {
+                    return ramAddr;
+                }
+                break;
+
+            case CACHEPOLICY_1:
+                ramAddr = AudioHeap_AllocCached(tableType, size, CACHE_PERSISTENT, id);
+                if (ramAddr == NULL) {
+                    return ramAddr;
+                }
+                break;
+
+            case CACHEPOLICY_2:
+                ramAddr = AudioHeap_AllocCached(tableType, size, CACHE_TEMPORARY, id);
+                if (ramAddr == NULL) {
+                    return ramAddr;
+                }
+                break;
+
+            case CACHEPOLICY_3:
+            case CACHEPOLICY_4:
+                ramAddr = AudioHeap_AllocCached(tableType, size, CACHE_EITHER, id);
+                if (ramAddr == NULL) {
+                    return ramAddr;
+                }
+                break;
+        }
+
+        *didAllocate = true;
+
+        if (medium == 1) {
+            AudioLoad_SyncDmaUnkMedium(romAddr, ramAddr, size, table->base.unkMediumParam);
+        } else {
+            AudioLoad_SyncDma(romAddr, ramAddr, size, medium);
+        }
+        loadStatus = (cachePolicy == CACHEPOLICY_0) ? 5 : 2;
+    }
+
+    switch (tableType) {
+        case SEQUENCE_TABLE:
+            if (gSeqLoadStatus[id] != 5) {
+                gSeqLoadStatus[id] = loadStatus;
+            }
+            break;
+
+        case FONT_TABLE:
+            if (gFontLoadStatus[id] != 5) {
+                gFontLoadStatus[id] = loadStatus;
+            }
+            break;
+
+        case SAMPLE_TABLE:
+            if (gSampleFontLoadStatus[id] != 5) {
+                gSampleFontLoadStatus[id] = loadStatus;
+            }
+            break;
+    }
+    return ramAddr;
+}
+#endif

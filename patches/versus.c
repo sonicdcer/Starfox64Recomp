@@ -1,5 +1,7 @@
 #include "patches.h"
 
+#if DEBUG_DISABLE_VERSUS == 1
+
 bool Option_Input_MoveCursor_Y(s32* arg0, s32 arg1, bool arg2, s32 arg3, s32 arg4, s32 arg5, s32 arg6,
                                s32 controllerNum, StickInputOption* stickY);
 void Option_MainMenu_Setup(void);
@@ -105,11 +107,12 @@ RECOMP_PATCH void Option_MainMenu_Update(void) {
             }
 
             if (gControllerPress[gMainController].button & (A_BUTTON | START_BUTTON)) {
-#if DEBUG_VERSUS == 0
+
+                // @recomp: Disable Versus mode
                 if (sMainMenuCursor == 2) {
                     break;
                 }
-#endif
+
                 AUDIO_PLAY_SFX(NA_SE_ARWING_DECIDE, gDefaultSfxSource, 4);
                 sLightningYpos = sOptionCardPosY[sMainMenuCursor];
                 sDrawCursor = false;
@@ -204,3 +207,4 @@ RECOMP_PATCH void Option_MainMenu_Update(void) {
             break;
     }
 }
+#endif
